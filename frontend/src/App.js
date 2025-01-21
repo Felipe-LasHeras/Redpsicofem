@@ -1,24 +1,34 @@
-import logo from './logo.svg';
 import './App.css';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Formulario from './components/forms/ConstructorFormulario';
+
+// Importa tus otros componentes/páginas
+import Dashboard from './pages/admin/Dashboard'; // Asumiendo que tienes este componente
+// import OtrasPages from './components/OtrasPages';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <div className="App">
+        <Routes>
+          {/* Ruta para la página principal */}
+          <Route path="/" element={
+            <header className="App-header">
+              <Formulario />
+            </header>
+          } />
+          
+          {/* Ruta para el dashboard */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          
+          {/* Puedes agregar más rutas aquí */}
+          {/* <Route path="/otra-pagina" element={<OtraPagina />} /> */}
+          
+          {/* Ruta para manejar páginas no encontradas */}
+          <Route path="*" element={<div>404 - Página no encontrada</div>} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 
