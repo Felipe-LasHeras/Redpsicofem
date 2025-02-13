@@ -22,68 +22,80 @@ function Dashboard() {
     'last_name_field',
     'horarios_field',
     'Arancel_field',
-    'Comuna_field'
+    'Comuna_field', 
+    'Arancel_field'
   ];
 
   if (formDataList.length === 0) {
-    return <div className="p-6">No hay datos para mostrar</div>;
+    return <div className="container mt-4">No hay datos para mostrar</div>;
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Datos de Pacientes</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {formDataList.map((formData, index) => (
-          <div 
-            key={index}
-            className={`relative bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${
-              expandedCard === index ? 'col-span-full' : ''
-            }`}
-          >
-            {/* Contenido principal de la tarjeta */}
-            <div className="p-6">
-              <h2 className="font-bold text-xl mb-4 text-gray-800">
-                {formData.name_field} {formData.last_name_field}
-              </h2>
-              
-              <div className={`grid gap-4 ${
-                expandedCard === index ? 'grid-cols-3' : 'grid-cols-1'
-              }`}>
-                {Object.entries(formData).map(([key, value]) => {
-                  if (key === 'submitTime') return null;
-                  if (expandedCard !== index && !previewFields.includes(key)) {
-                    return null;
-                  }
+    <div className="container mt-4">
+      <h1 className="display-4 mb-4">Datos de Pacientes</h1>
+      <div className="row g-4">
+        {formDataList.map((formData, index) => {
+          const isExpanded = expandedCard === index;
+          
+          return (
+            <div 
+              key={index} 
+              className={`${isExpanded ? 'col-12' : 'col-12 col-md-6 col-lg-4'}`}
+              style={{
+                transition: 'all 0.3s ease-in-out',
+                order: isExpanded ? '-1' : 'initial'
+              }}
+            >
+              <div className="card h-100 shadow-sm">
+                {/* Encabezado de la tarjeta */}
+                <div className="card-header bg-primary text-white">
+                  <h5 className="card-title mb-0">
+                    {formData.name_field} {formData.last_name_field}
+                  </h5>
+                </div>
 
-                  const fieldName = key
-                    .replace(/_field/g, '')
-                    .replace(/_/g, ' ')
-                    .charAt(0).toUpperCase() + 
-                    key.slice(1).replace(/_field/g, '').replace(/_/g, ' ');
+                {/* Cuerpo de la tarjeta */}
+                <div className="card-body">
+                  <div className={`row g-3 ${isExpanded ? 'row-cols-1 row-cols-sm-2 row-cols-md-3' : 'row-cols-1'}`}>
+                    {Object.entries(formData).map(([key, value]) => {
+                      if (key === 'submitTime') return null;
+                      if (!isExpanded && !previewFields.includes(key)) {
+                        return null;
+                      }
 
-                  return (
-                    <div key={key} className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                      <h3 className="font-medium text-sm text-gray-600 mb-1">{fieldName}</h3>
-                      <p className="text-gray-800">
-                        {typeof value === 'boolean' ? (value ? 'Sí' : 'No') : value || 'No especificado'}
-                      </p>
-                    </div>
-                  );
-                })}
+                      const fieldName = key
+                        .replace(/_field/g, '')
+                        .replace(/_/g, ' ')
+                        .charAt(0).toUpperCase() + 
+                        key.slice(1).replace(/_field/g, '').replace(/_/g, ' ');
+
+                      return (
+                        <div key={key} className="col">
+                          <div className="p-3 bg-light rounded h-100">
+                            <h6 className="text-muted mb-1 text-break">{fieldName}</h6>
+                            <p className="mb-0 text-break small">
+                              {typeof value === 'boolean' ? (value ? 'Sí' : 'No') : value || 'No especificado'}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Pie de la tarjeta */}
+                <div className="card-footer bg-white border-top-0">
+                  <button
+                    onClick={() => setExpandedCard(expandedCard === index ? null : index)}
+                    className="btn btn-primary w-100"
+                  >
+                    {isExpanded ? 'Ver menos' : 'Ver más'}
+                  </button>
+                </div>
               </div>
             </div>
-
-            {/* Botón en la parte inferior */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-              <button
-                onClick={() => setExpandedCard(expandedCard === index ? null : index)}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg transition-colors duration-200 text-sm font-medium"
-              >
-                {expandedCard === index ? 'Ver menos' : 'Ver más'}
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

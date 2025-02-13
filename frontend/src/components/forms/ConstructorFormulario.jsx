@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { pacientesApi } from '../../services/pacientesApi.js';
 
 const ClientForm = () => {
   const navigate = useNavigate();
+  const [step, setStep] = useState(0);
   
   const [formFields] = useState([
     {
@@ -157,131 +159,190 @@ const ClientForm = () => {
 
   const handleChange = (e) => {
     const { id, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [id]: type === 'checkbox' ? checked : value
-    }));
+    
+    if (type === 'checkbox') {
+      setFormData(prev => ({
+        ...prev,
+        [id]: checked
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [id]: value
+      }));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const nextStep = () => {
+    if (step < formFields.length - 1) setStep(step + 1);
+  };
+
+  const prevStep = () => {
+    if (step > 0) setStep(step - 1);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
-      // Agregar timestamp al formulario
-      const formDataWithTimestamp = {
-        ...formData,
-        submitTime: new Date().toISOString()
+      const pacienteData = {
+        email: formData.email_field,
+        nombre: formData.name_field,
+        apellido: formData.last_name_field,
+        rut: formData.rut_field,
+        edad: formData.age_field,
+        region: formData.Region_field,
+        comuna: formData.Comuna_field,
+        ciudad: formData.Ciudad_field,
+        direccion: formData.Direccion_field,
+        telefono: formData.Telefono_field,
+        nombre_contacto_emergencia: formData.Nombre_contacto_emergencia_field,
+        telefono_contacto_emergencia: formData.Telefono_contacto_emergencia_field,
+        motivo_consulta: formData.Motivo_consulta_field,
+        diagnostico: formData.diagnostico_field,
+        sintomas: formData.Sintomas_field,
+        horarios: formData.horarios_field,
+        arancel: formData.Arancel_field,
+        prevision: formData.Prevision_field,
+        modalidad: formData.Modalidad_field,
+        psicologo_varon: formData.Psicologo_varon_field,
+        practicante: formData[`practicante_field_Si`] ? 'Si' : 'No',
+        pregunta: formData.Pregunta_field
       };
 
-      // Obtener la lista existente del localStorage o crear una nueva si no existe
-      let formDataList = [];
-      const existingData = localStorage.getItem('formDataList');
-      
-      if (existingData) {
-        try {
-          formDataList = JSON.parse(existingData);
-          if (!Array.isArray(formDataList)) {
-            formDataList = [];
-          }
-        } catch (error) {
-          console.error('Error parsing existing data:', error);
-          formDataList = [];
-        }
-      }
-
-      // Agregar los nuevos datos a la lista
-      formDataList.push(formDataWithTimestamp);
-
-      // Guardar la lista actualizada en localStorage
-      localStorage.setItem('formDataList', JSON.stringify(formDataList));
-
-      // Limpiar el formulario actual
+      await pacientesApi.create(pacienteData);
       setFormData({});
-
-      // Navegar al dashboard
+      alert('Paciente registrado exitosamente');
       navigate('/dashboard');
     } catch (error) {
-      console.error('Error saving form data:', error);
+      console.error('Error al guardar los datos:', error);
       alert('Hubo un error al guardar los datos. Por favor intente nuevamente.');
     }
   };
 
-  return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Formulario de Cliente</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {formFields.map((field) => (
-          <div key={field.id} className="flex flex-col">
-            <label htmlFor={field.id} className="mb-2">
-              {field.label}
-            </label>
-            
-            {field.type === 'text' && (
-              <input
-                type="text"
-                id={field.id}
-                required={field.required}
-                className="border p-2 rounded"
-                onChange={handleChange}
-                value={formData[field.id] || ''}
-              />
-            )}
-            
-            {field.type === 'dropdown' && (
-              <select 
-                id={field.id}
-                required={field.required}
-                className="border p-2 rounded"
-                onChange={handleChange}
-                value={formData[field.id] || ''}
-              >
-                <option value="">Seleccione una opción</option>
-                {field.options?.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            )}
-            
-            {field.type === 'time' && (
-              <input
-                type="time"
-                id={field.id}
-                required={field.required}
-                className="border p-2 rounded"
-                onChange={handleChange}
-                value={formData[field.id] || ''}
-              />
-            )}
-            
-            {field.type === 'checkbox-group' && (
-              <div className="flex gap-4">
-                {field.options?.map((option) => (
-                  <label key={option.value} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id={`${field.id}_${option.value}`}
-                      value={option.value}
-                      name={field.id}
-                      onChange={handleChange}
-                      checked={formData[`${field.id}_${option.value}`] || false}
-                    />
-                    {option.label}
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (step < formFields.length - 1) {
+        nextStep();
+      } else {
+        handleSubmit(e);
+      }
+    }
+  };
+
+  const renderField = (field) => {
+    return (
+      <div className="mb-4">
+        <label htmlFor={field.id} className="form-label fw-semibold">
+          {field.label}
+          {field.required && <span className="text-info ms-1">*</span>}
+        </label>
         
-        <button 
-          type="submit" 
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Enviar
-        </button>
-      </form>
+        {field.type === 'dropdown' ? (
+          <select
+            id={field.id}
+            className="form-select form-select-lg bg-light"
+            value={formData[field.id] || ''}
+            onChange={handleChange}
+            required={field.required}
+          >
+            <option value="">Seleccione una opción</option>
+            {field.options?.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+        ) : field.type === 'checkbox-group' ? (
+          <div className="d-flex gap-4">
+            {field.options?.map((option) => (
+              <div key={option.value} className="form-check">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  id={`${field.id}_${option.value}`}
+                  value={option.value}
+                  name={field.id}
+                  onChange={handleChange}
+                  checked={formData[`${field.id}_${option.value}`] || false}
+                />
+                <label className="form-check-label" htmlFor={`${field.id}_${option.value}`}>
+                  {option.label}
+                </label>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <input
+            type={field.type}
+            className="form-control form-control-lg bg-light"
+            id={field.id}
+            value={formData[field.id] || ''}
+            onChange={handleChange}
+            required={field.required}
+          />
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-vh-100 d-flex flex-column justify-content-center align-items-center bg-white p-4">
+      <div className="container">
+        <div className="row justify-content-center">
+          <div className="col-12 col-md-8 col-lg-6">
+            <h2 className="text-center mb-4">¿Buscas atención psicológica en REDPSICOFEM?</h2>
+            
+            <div className="mb-4">
+              <div className="progress" style={{height: "4px"}}>
+                <div 
+                  className="progress-bar bg-info"
+                  role="progressbar"
+                  style={{ width: `${((step + 1) / formFields.length) * 100}%` }}
+                  aria-valuenow={((step + 1) / formFields.length) * 100}
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                >
+                </div>
+              </div>
+              <small className="text-muted mt-2 d-block">
+                {step + 1}/{formFields.length}
+              </small>
+            </div>
+
+            <form onSubmit={handleSubmit} onKeyPress={handleKeyPress}>
+              {renderField(formFields[step])}
+
+              <div className="d-flex justify-content-between align-items-center mt-4">
+                <small className="text-muted fst-italic">
+                  Presione ENTRAR
+                </small>
+                <div className="d-flex gap-2">
+                  {step > 0 && (
+                    <button
+                      type="button"
+                      onClick={prevStep}
+                      className="btn btn-outline-secondary"
+                    >
+                      Atrás
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={step < formFields.length - 1 ? nextStep : handleSubmit}
+                    className="btn btn-info text-white"
+                  >
+                    {step < formFields.length - 1 ? 'PRÓXIMO' : 'ENVIAR'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      
+      <div className="mt-4 text-muted small">
+        Made with forms.app
+      </div>
     </div>
   );
 };
