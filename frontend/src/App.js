@@ -6,6 +6,7 @@ import Formulario from './components/forms/ConstructorFormulario';
 // Importa tus otros componentes/páginas
 import Dashboard from './pages/admin/Dashboard'; // Asumiendo que tienes este componente
 import Terapeutas from './components/profile/Terapeutas'
+import FormularioTerapeuta from './components/forms/FormularioTeraputa'
 // import OtrasPages from './components/OtrasPages';
 
 function App() {
@@ -22,7 +23,7 @@ function App() {
           
           {/* Ruta para el dashboard */}
           <Route path="/dashboard" element={<Dashboard />} />
-          
+          <Route path="/formularioterapeuta" element={<FormularioTerapeuta />} />
           {/* Puedes agregar más rutas aquí */}
           {/* <Route path="/otra-pagina" element={<OtraPagina />} /> */}
           

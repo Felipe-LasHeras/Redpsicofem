@@ -1,6 +1,6 @@
 // services/pacientesApi.js
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = "http://localhost:3001/api";
 
 export const pacientesApi = {
   // Obtener todos los pacientes
@@ -8,11 +8,11 @@ export const pacientesApi = {
     try {
       const response = await fetch(`${API_URL}/pacientes`);
       if (!response.ok) {
-        throw new Error('Error al obtener pacientes');
+        throw new Error("Error al obtener pacientes");
       }
       return await response.json();
     } catch (error) {
-      console.error('Error en getAll:', error);
+      console.error("Error en getAll:", error);
       throw error;
     }
   },
@@ -22,11 +22,11 @@ export const pacientesApi = {
     try {
       const response = await fetch(`${API_URL}/pacientes/${id}`);
       if (!response.ok) {
-        throw new Error('Error al obtener el paciente');
+        throw new Error("Error al obtener el paciente");
       }
       return await response.json();
     } catch (error) {
-      console.error('Error en getById:', error);
+      console.error("Error en getById:", error);
       throw error;
     }
   },
@@ -34,20 +34,33 @@ export const pacientesApi = {
   // Crear nuevo paciente
   create: async (pacienteData) => {
     try {
+      const formattedData = {
+        ...pacienteData,
+        edad: parseInt(pacienteData.edad),
+        horarios: Array.isArray(pacienteData.horarios)
+          ? pacienteData.horarios.join(", ")
+          : pacienteData.horarios,
+        psicologo_varon: pacienteData.psicologo_varon === "Si",
+        practicante: pacienteData.practicante === "Si",
+      };
+
       const response = await fetch(`${API_URL}/pacientes`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(pacienteData)
+        body: JSON.stringify(formattedData),
       });
 
       if (!response.ok) {
-        throw new Error('Error al crear paciente');
+        const error = await response.json();
+        throw new Error(error.message || "Error al crear paciente");
       }
-      return await response.json();
+
+      const data = await response.json();
+      return { success: true, data };
     } catch (error) {
-      console.error('Error en create:', error);
+      console.error("Error en create:", error);
       throw error;
     }
   },
@@ -56,19 +69,19 @@ export const pacientesApi = {
   update: async (id, pacienteData) => {
     try {
       const response = await fetch(`${API_URL}/pacientes/${id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(pacienteData)
+        body: JSON.stringify(pacienteData),
       });
 
       if (!response.ok) {
-        throw new Error('Error al actualizar paciente');
+        throw new Error("Error al actualizar paciente");
       }
       return await response.json();
     } catch (error) {
-      console.error('Error en update:', error);
+      console.error("Error en update:", error);
       throw error;
     }
   },
@@ -77,16 +90,16 @@ export const pacientesApi = {
   delete: async (id) => {
     try {
       const response = await fetch(`${API_URL}/pacientes/${id}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
 
       if (!response.ok) {
-        throw new Error('Error al eliminar paciente');
+        throw new Error("Error al eliminar paciente");
       }
       return await response.json();
     } catch (error) {
-      console.error('Error en delete:', error);
+      console.error("Error en delete:", error);
       throw error;
     }
-  }
+  },
 };

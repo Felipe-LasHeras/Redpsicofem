@@ -1,43 +1,102 @@
 import React, { useEffect, useState } from "react";
-import { pacientesApi } from "../../services/pacientesApi"; // Añadir esta importación
+import { pacientesApi } from "../../services/pacientesApi";
+import { terapeutasApi } from "../../services/terapeutasApi";
 
 function Dashboard() {
-  const [formDataList, setFormDataList] = useState([]);
+  const [activeTab, setActiveTab] = useState("pacientes");
+  const [pacientes, setPacientes] = useState([]);
+  const [terapeutas, setTerapeutas] = useState([]);
   const [expandedCard, setExpandedCard] = useState(null);
 
   useEffect(() => {
-    const fetchPacientes = async () => {
+    const fetchData = async () => {
       try {
-        const pacientes = await pacientesApi.getAll();
-        setFormDataList(pacientes);
+        if (activeTab === "pacientes") {
+          const pacientesData = await pacientesApi.getAll();
+          setPacientes(pacientesData);
+        } else {
+          const terapeutasData = await terapeutasApi.getAll();
+          setTerapeutas(terapeutasData);
+        }
       } catch (error) {
-        console.error("Error al obtener pacientes:", error);
-        setFormDataList([]);
-        console.log(1)
+        console.error(`Error al obtener ${activeTab}:`, error);
       }
     };
 
-    fetchPacientes();
-  }, []);
+    fetchData();
+  }, [activeTab]);
 
-  const previewFields = [
+  const previewFieldsPacientes = [
+    "email",
     "nombre",
     "apellido",
     "telefono",
-    "arancel",
+    "region",
     "comuna",
     "horarios",
+    "modalidad",
   ];
 
-  if (formDataList.length === 0) {
-    return <div className="container mt-4">No hay datos para mostrar</div>;
-  }
+  const previewFieldsTerapeutas = [
+    "nombre",
+    "apellido",
+    "tipo_terapeuta",
+    "especialidad",
+    "comuna",
+    "lugar_atencion",
+    "valor_consulta",
+    "edad_atencion",
+    "tipo_atencion",
+  ];
 
-  return (
-    <div className="container mt-4">
-      <h1 className="display-4 mb-4">Datos de Pacientes</h1>
+  const fieldNameMap = {
+    // Campos de pacientes
+    email: "Correo",
+    nombre: "Nombre",
+    apellido: "Apellido",
+    rut: "RUT",
+    edad: "Edad",
+    region: "Región",
+    comuna: "Comuna",
+    ciudad: "Ciudad",
+    direccion: "Dirección",
+    telefono: "Teléfono",
+    nombre_contacto_emergencia: "Contacto de emergencia",
+    telefono_contacto_emergencia: "Teléfono de emergencia",
+    motivo_consulta: "Motivo de consulta",
+    diagnostico: "Diagnóstico",
+    sintomas: "Síntomas",
+    horarios: "Horario",
+    arancel: "Arancel",
+    prevision: "Previsión",
+    modalidad: "Modalidad",
+    psicologo_varon: "Psicólogo varón",
+    practicante: "Practicante",
+    pregunta: "Pregunta adicional",
+    // Campos de terapeutas actualizados
+    nombre: "Nombre",
+    apellido: "Apellido",
+    tipo_terapeuta: "Tipo de Terapeuta",
+    especialidad: "Especialidad",
+    region: "Región",
+    comuna: "Comuna",
+    lugar_atencion: "Lugar de Atención",
+    valor_consulta: "Valor Consulta",
+    descripcion: "Descripción",
+    rut: "RUT",
+    edad_atencion: "Edad de Atención",
+    tipo_atencion: "Tipo de Atención",
+    horarios: "Horarios Disponibles",
+  };
+
+  const renderCards = (dataList, previewFields) => {
+    if (dataList.length === 0) {
+      return <div className="container mt-4">No hay datos para mostrar</div>;
+    }
+
+    return (
       <div className="row g-4">
-        {formDataList.map((formData, index) => {
+        {dataList.map((data, index) => {
           const isExpanded = expandedCard === index;
 
           return (
@@ -52,14 +111,12 @@ function Dashboard() {
               }}
             >
               <div className="card h-100 shadow-sm">
-                {/* Encabezado de la tarjeta */}
                 <div className="card-header bg-primary text-white">
                   <h5 className="card-title mb-0">
-                    {formData.nombre} {formData.apellido}
+                    {data.nombre} {data.apellido}
                   </h5>
                 </div>
 
-                {/* Cuerpo de la tarjeta */}
                 <div className="card-body">
                   <div
                     className={`row g-3 ${
@@ -68,28 +125,16 @@ function Dashboard() {
                         : "row-cols-1"
                     }`}
                   >
-                    {Object.entries(formData).map(([key, value]) => {
-                      if (key === "submitTime") return null;
-                      if (!isExpanded && !previewFields.includes(key)) {
+                    {Object.entries(data).map(([key, value]) => {
+                      if (key === "id" || key === "created_at") return null;
+                      if (!isExpanded && !previewFields.includes(key))
                         return null;
-                      }
-
-                      const fieldName =
-                        key
-                          .replace(/_field/g, "")
-                          .replace(/_/g, " ")
-                          .charAt(0)
-                          .toUpperCase() +
-                        key
-                          .slice(1)
-                          .replace(/_field/g, "")
-                          .replace(/_/g, " ");
 
                       return (
                         <div key={key} className="col">
                           <div className="p-3 bg-light rounded h-100">
                             <h6 className="text-muted mb-1 text-break">
-                              {fieldName}
+                              {fieldNameMap[key] || key}
                             </h6>
                             <p className="mb-0 text-break small">
                               {typeof value === "boolean"
@@ -105,7 +150,6 @@ function Dashboard() {
                   </div>
                 </div>
 
-                {/* Pie de la tarjeta */}
                 <div className="card-footer bg-white border-top-0">
                   <button
                     onClick={() =>
@@ -121,6 +165,36 @@ function Dashboard() {
           );
         })}
       </div>
+    );
+  };
+
+  return (
+    <div className="container mt-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="display-4">Dashboard</h1>
+        <div className="btn-group">
+          <button
+            className={`btn btn-lg ${
+              activeTab === "pacientes" ? "btn-primary" : "btn-outline-primary"
+            }`}
+            onClick={() => setActiveTab("pacientes")}
+          >
+            Pacientes
+          </button>
+          <button
+            className={`btn btn-lg ${
+              activeTab === "terapeutas" ? "btn-primary" : "btn-outline-primary"
+            }`}
+            onClick={() => setActiveTab("terapeutas")}
+          >
+            Terapeutas
+          </button>
+        </div>
+      </div>
+
+      {activeTab === "pacientes"
+        ? renderCards(pacientes, previewFieldsPacientes)
+        : renderCards(terapeutas, previewFieldsTerapeutas)}
     </div>
   );
 }
