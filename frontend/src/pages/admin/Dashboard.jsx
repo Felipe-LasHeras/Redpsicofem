@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { pacientesApi } from "../../services/pacientesApi";
 import { terapeutasApi } from "../../services/terapeutasApi";
+import { Link } from "react-router-dom";
 
 function Dashboard() {
   const [activeTab, setActiveTab] = useState("pacientes");
@@ -50,14 +51,17 @@ function Dashboard() {
   ];
 
   const fieldNameMap = {
-    // Campos de pacientes
+    // Campos comunes
     email: "Correo",
     nombre: "Nombre",
     apellido: "Apellido",
     rut: "RUT",
-    edad: "Edad",
     region: "Región",
     comuna: "Comuna",
+    horarios: "Horarios",
+    
+    // Campos específicos de pacientes
+    edad: "Edad",
     ciudad: "Ciudad",
     direccion: "Dirección",
     telefono: "Teléfono",
@@ -66,29 +70,23 @@ function Dashboard() {
     motivo_consulta: "Motivo de consulta",
     diagnostico: "Diagnóstico",
     sintomas: "Síntomas",
-    horarios: "Horario",
     arancel: "Arancel",
     prevision: "Previsión",
     modalidad: "Modalidad",
     psicologo_varon: "Psicólogo varón",
     practicante: "Practicante",
     pregunta: "Pregunta adicional",
-    // Campos de terapeutas actualizados
-    nombre: "Nombre",
-    apellido: "Apellido",
+    campos_dinamicos: "Campos adicionales",
+    
+    // Campos específicos de terapeutas
     tipo_terapeuta: "Tipo de Terapeuta",
     especialidad: "Especialidad",
-    region: "Región",
-    comuna: "Comuna",
     lugar_atencion: "Lugar de Atención",
     valor_consulta: "Valor Consulta",
     descripcion: "Descripción",
-    rut: "RUT",
     edad_atencion: "Edad de Atención",
     tipo_atencion: "Tipo de Atención",
-    horarios: "Horarios Disponibles",
   };
-
   const renderCards = (dataList, previewFields) => {
     if (dataList.length === 0) {
       return <div className="container mt-4">No hay datos para mostrar</div>;
@@ -126,9 +124,32 @@ function Dashboard() {
                     }`}
                   >
                     {Object.entries(data).map(([key, value]) => {
-                      if (key === "id" || key === "created_at") return null;
+                      if (key === "id" || key === "created_at" || key === "ultima_actualizacion") return null;
                       if (!isExpanded && !previewFields.includes(key))
                         return null;
+                        
+                      // Manejo especial para los campos dinámicos
+                      if (key === "campos_dinamicos" && value && Object.keys(value).length > 0) {
+                        return (
+                          <div key={key} className="col">
+                            <div className="p-3 bg-light rounded h-100">
+                              <h6 className="text-muted mb-2 text-break">
+                                {fieldNameMap[key] || key}
+                              </h6>
+                              <div className="small">
+                                {Object.entries(value).map(([campoNombre, campoValor]) => (
+                                  <div key={campoNombre} className="mb-2">
+                                    <strong>{campoNombre}:</strong> {" "}
+                                    {Array.isArray(campoValor) 
+                                      ? campoValor.join(", ") 
+                                      : String(campoValor)}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
 
                       return (
                         <div key={key} className="col">
@@ -172,23 +193,30 @@ function Dashboard() {
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="display-4">Dashboard</h1>
-        <div className="btn-group">
-          <button
-            className={`btn btn-lg ${
-              activeTab === "pacientes" ? "btn-primary" : "btn-outline-primary"
-            }`}
-            onClick={() => setActiveTab("pacientes")}
-          >
-            Pacientes
-          </button>
-          <button
-            className={`btn btn-lg ${
-              activeTab === "terapeutas" ? "btn-primary" : "btn-outline-primary"
-            }`}
-            onClick={() => setActiveTab("terapeutas")}
-          >
-            Terapeutas
-          </button>
+        <div className="d-flex gap-2">
+          <div className="btn-group">
+            <button
+              className={`btn btn-lg ${
+                activeTab === "pacientes" ? "btn-primary" : "btn-outline-primary"
+              }`}
+              onClick={() => setActiveTab("pacientes")}
+            >
+              Pacientes
+            </button>
+            <button
+              className={`btn btn-lg ${
+                activeTab === "terapeutas" ? "btn-primary" : "btn-outline-primary"
+              }`}
+              onClick={() => setActiveTab("terapeutas")}
+            >
+              Terapeutas
+            </button>
+          </div>
+          
+          {/* Enlace a gestión de campos */}
+          <Link to="/admin/campos" className="btn btn-lg btn-outline-success">
+            Gestionar Campos
+          </Link>
         </div>
       </div>
 

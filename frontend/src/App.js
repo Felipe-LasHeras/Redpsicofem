@@ -1,13 +1,11 @@
 import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Formulario from './components/forms/ConstructorFormulario';
-
-
-// Importa tus otros componentes/páginas
-import Dashboard from './pages/admin/Dashboard'; // Asumiendo que tienes este componente
-import Terapeutas from './components/profile/Terapeutas'
-import FormularioTerapeuta from './components/forms/FormularioTeraputa'
-// import OtrasPages from './components/OtrasPages';
+import Dashboard from './pages/admin/Dashboard';
+import Terapeutas from './components/profile/Terapeutas';
+import FormularioTerapeuta from './components/forms/FormularioTeraputa';
+import GestionCampos from './components/admin/GestionCampos';
+import Agradecimiento from './pages/Agradecimiento';
 
 function App() {
   return (
@@ -24,6 +22,9 @@ function App() {
           {/* Ruta para el dashboard */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/formularioterapeuta" element={<FormularioTerapeuta />} />
+          <Route path="/admin/campos" element={<GestionCampos />} />
+          <Route path="/gracias" element={<Agradecimiento />} />
+          
           {/* Puedes agregar más rutas aquí */}
           {/* <Route path="/otra-pagina" element={<OtraPagina />} /> */}
           

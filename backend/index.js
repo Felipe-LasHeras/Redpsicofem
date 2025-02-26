@@ -3,8 +3,10 @@ const express = require("express");
 const cors = require("cors");
 const pacientesRoutes = require("./server/routes/pacientes/pacientes.router");
 const terapeutasRoutes = require("./server/routes/terapeutas/terapeutas.router");
+const camposRoutes = require("./server/routes/campos/campos.router"); // Nuevo router para campos
 const { createTable: createTablePacientes } = require("./db/tablaPacientes");
 const { createTable: createTableTerapeutas } = require("./db/tablaTerapeuta");
+const { actualizarTablaPacientes } = require("./db/actualizarTablaPacientes");
 
 const app = express();
 
@@ -21,12 +23,14 @@ app.use(
 app.use(express.json());
 app.use("/api/pacientes", pacientesRoutes);
 app.use("/api/terapeutas", terapeutasRoutes);
+app.use("/api/campos", camposRoutes); // Nueva ruta para la API de campos
 
 // Inicializar las bases de datos
 const initDatabase = async () => {
   try {
     await createTablePacientes();
     await createTableTerapeutas();
+    await actualizarTablaPacientes(); // Ejecutar la actualización
     console.log("Tablas creadas exitosamente");
   } catch (error) {
     console.error("Error al crear las tablas:", error);
@@ -38,5 +42,5 @@ initDatabase();
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en el puerto ${PORT}`);
+  console.log(`Servidor corriendo en el puerto ${3001}`);
 });

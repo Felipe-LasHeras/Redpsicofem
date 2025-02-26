@@ -1,13 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { pacientesApi } from "../../services/pacientesApi.js";
+import { camposApi } from "../../services/camposApi.js";
 import { regiones } from "../../components/common/RegionesyComunas";
 
 const ClientForm = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [comunasDisponibles, setComunasDisponibles] = useState([]);
+  const [camposDinamicos, setCamposDinamicos] = useState([]);
+  const [formData, setFormData] = useState({});
+  
+  // Este estado contendrá todos los campos del formulario (fijos + dinámicos)
+  const [allFields, setAllFields] = useState([]);
 
+  // Campos fijos del formulario
   const [formFields] = useState([
     {
       type: "text",
@@ -193,7 +200,54 @@ const ClientForm = () => {
     },
   ]);
 
-  const [formData, setFormData] = useState({});
+  // Carga los campos dinámicos desde la API
+  useEffect(() => {
+    const cargarCamposDinamicos = async () => {
+      try {
+        const campos = await camposApi.getActivos();
+        // Convierte los campos de la API al formato que espera el formulario
+        const camposFormateados = campos.map(campo => ({
+          id: `dinamico_${campo.nombre_campo}`,
+          label: campo.etiqueta,
+          type: campo.tipo,
+          required: campo.requerido,
+          options: campo.opciones,
+          categoria: campo.categoria,
+          orden: campo.orden,
+          campo_id: campo.id, // guardamos el id original para referencia
+          dinamico: true // marcamos que es un campo dinámico
+        }));
+        
+        setCamposDinamicos(camposFormateados);
+      } catch (error) {
+        console.error("Error al cargar campos dinámicos:", error);
+      }
+    };
+
+    cargarCamposDinamicos();
+  }, []);
+
+  // Combinamos los campos fijos con los dinámicos cuando estos últimos cambian
+  useEffect(() => {
+    // Combinar campos fijos y dinámicos y ordenarlos
+    const campos = [...formFields, ...camposDinamicos].sort((a, b) => {
+      // Los campos dinámicos tienen prioridad en el orden
+      if (a.dinamico && b.dinamico) {
+        return a.orden - b.orden;
+      }
+      // Los campos dinámicos van después de los fijos
+      if (a.dinamico && !b.dinamico) {
+        return 1;
+      }
+      if (!a.dinamico && b.dinamico) {
+        return -1;
+      }
+      // Por defecto, mantener el orden de los campos fijos
+      return 0;
+    });
+    
+    setAllFields(campos);
+  }, [formFields, camposDinamicos]);
 
   const handleChange = (e) => {
     const { id, value, type, checked } = e.target;
@@ -209,17 +263,12 @@ const ClientForm = () => {
         [id]: value,
       }));
 
-      console.log("Campo cambiado:", id);
-      console.log("Valor seleccionado:", value);
-
       if (id === "Region_field") {
         const regionSeleccionada = regiones.find(
           (region) => region.nombre === value
         );
-        console.log("Región seleccionada:", regionSeleccionada);
 
         if (regionSeleccionada) {
-          console.log("Comunas de la región:", regionSeleccionada.comunas);
           setComunasDisponibles(regionSeleccionada.comunas);
 
           setFormData((prev) => ({
@@ -232,7 +281,7 @@ const ClientForm = () => {
   };
 
   const nextStep = () => {
-    if (step < formFields.length - 1) setStep(step + 1);
+    if (step < allFields.length - 1) setStep(step + 1);
   };
 
   const prevStep = () => {
@@ -241,14 +290,15 @@ const ClientForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
+      // Procesar datos de campos fijos
       const horariosSeleccionados = Object.entries(formData)
         .filter(([key, value]) => key.startsWith("horarios_field_") && value)
         .map(([key]) => key.replace("horarios_field_", ""));
-
+  
       const horarioSeleccionado = horariosSeleccionados[0];
-
+  
       const pacienteData = {
         email: formData.email_field,
         nombre: formData.name_field,
@@ -274,13 +324,39 @@ const ClientForm = () => {
         practicante: formData[`practicante_field_Si`] === true,
         pregunta: formData.Pregunta_field,
       };
-
-      const response = await pacientesApi.create(pacienteData);
-
+  
+      // Procesar datos de campos dinámicos
+      const camposDinamicosData = {};
+      
+      camposDinamicos.forEach(campo => {
+        const id = campo.id;
+        const nombreCampo = campo.id.replace('dinamico_', '');
+        
+        if (campo.type === 'checkbox-group') {
+          // Para grupos de checkbox, buscamos todos los valores seleccionados
+          const valoresSeleccionados = Object.entries(formData)
+            .filter(([key, value]) => key.startsWith(`${id}_`) && value)
+            .map(([key]) => key.replace(`${id}_`, ''));
+            
+          camposDinamicosData[nombreCampo] = valoresSeleccionados;
+        } else {
+          // Para otros tipos de campo, simplemente tomamos el valor
+          camposDinamicosData[nombreCampo] = formData[id] || null;
+        }
+      });
+  
+      // Enviar datos completos
+      const datosCompletos = {
+        ...pacienteData,
+        campos_dinamicos: camposDinamicosData
+      };
+  
+      const response = await pacientesApi.create(datosCompletos);
+  
       if (response.success) {
         setFormData({});
-        alert("Paciente registrado exitosamente");
-        navigate("/dashboard");
+        // Redireccionar a la página de agradecimiento
+        navigate("/gracias");
       } else {
         throw new Error(response.message || "Error al guardar los datos");
       }
@@ -298,7 +374,7 @@ const ClientForm = () => {
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      if (step < formFields.length - 1) {
+      if (step < allFields.length - 1) {
         nextStep();
       } else {
         handleSubmit(e);
@@ -360,11 +436,30 @@ const ClientForm = () => {
                   </option>
                 ))
               : field.options?.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
+                  <option key={typeof option === 'object' ? option.value : option} 
+                          value={typeof option === 'object' ? option.value : option}>
+                    {typeof option === 'object' ? option.label : option}
                   </option>
                 ))}
           </select>
+        ) : field.type === "textarea" ? (
+          <textarea
+            className="form-control form-control-lg bg-light"
+            id={field.id}
+            value={formData[field.id] || ""}
+            onChange={handleChange}
+            required={field.required}
+            rows="4"
+          />
+        ) : field.type === "date" ? (
+          <input
+            type="date"
+            className="form-control form-control-lg bg-light"
+            id={field.id}
+            value={formData[field.id] || ""}
+            onChange={handleChange}
+            required={field.required}
+          />
         ) : (
           <input
             type={field.type}
@@ -394,20 +489,20 @@ const ClientForm = () => {
                   className="progress-bar bg-info"
                   role="progressbar"
                   style={{
-                    width: `${((step + 1) / formFields.length) * 100}%`,
+                    width: `${((step + 1) / allFields.length) * 100}%`,
                   }}
-                  aria-valuenow={((step + 1) / formFields.length) * 100}
+                  aria-valuenow={((step + 1) / allFields.length) * 100}
                   aria-valuemin="0"
                   aria-valuemax="100"
                 ></div>
               </div>
               <small className="text-muted mt-2 d-block">
-                {step + 1}/{formFields.length}
+                {step + 1}/{allFields.length}
               </small>
             </div>
 
             <form onSubmit={handleSubmit} onKeyPress={handleKeyPress}>
-              {renderField(formFields[step])}
+              {allFields.length > 0 && renderField(allFields[step])}
 
               <div className="d-flex justify-content-between align-items-center mt-4">
                 <small className="text-muted fst-italic">Presione ENTRAR</small>
@@ -424,11 +519,11 @@ const ClientForm = () => {
                   <button
                     type="button"
                     onClick={
-                      step < formFields.length - 1 ? nextStep : handleSubmit
+                      step < allFields.length - 1 ? nextStep : handleSubmit
                     }
                     className="btn btn-info text-white"
                   >
-                    {step < formFields.length - 1 ? "PRÓXIMO" : "ENVIAR"}
+                    {step < allFields.length - 1 ? "PRÓXIMO" : "ENVIAR"}
                   </button>
                 </div>
               </div>

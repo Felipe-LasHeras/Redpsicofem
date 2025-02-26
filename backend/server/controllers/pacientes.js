@@ -34,6 +34,7 @@ const getPacienteById = async (req, res) => {
 // Crear nuevo paciente
 const crearPaciente = async (req, res) => {
   try {
+    // Extraer campos fijos del cuerpo de la solicitud
     const {
       email,
       nombre,
@@ -57,6 +58,8 @@ const crearPaciente = async (req, res) => {
       psicologo_varon,
       practicante,
       pregunta,
+      // Nuevo campo para campos dinámicos
+      campos_dinamicos
     } = req.body;
 
     // Convertir los valores booleanos correctamente
@@ -64,16 +67,17 @@ const crearPaciente = async (req, res) => {
       psicologo_varon === "Si" || psicologo_varon === true;
     const practicanteBoolean = practicante === "Si" || practicante === true;
 
+    // Query modificado para incluir campos_dinamicos
     const query = `
-            INSERT INTO perfiles_pacientes (
-                email, nombre, apellido, rut, edad, region, comuna, ciudad,
-                direccion, telefono, nombre_contacto_emergencia, telefono_contacto_emergencia,
-                motivo_consulta, diagnostico, sintomas, horarios, arancel, prevision,
-                modalidad, psicologo_varon, practicante, pregunta
-            )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
-            RETURNING *;
-        `;
+      INSERT INTO perfiles_pacientes (
+        email, nombre, apellido, rut, edad, region, comuna, ciudad,
+        direccion, telefono, nombre_contacto_emergencia, telefono_contacto_emergencia,
+        motivo_consulta, diagnostico, sintomas, horarios, arancel, prevision,
+        modalidad, psicologo_varon, practicante, pregunta, campos_dinamicos, ultima_actualizacion
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, CURRENT_TIMESTAMP)
+      RETURNING *;
+    `;
 
     const values = [
       email,
@@ -98,6 +102,7 @@ const crearPaciente = async (req, res) => {
       psicologoVaronBoolean,
       practicanteBoolean,
       pregunta,
+      campos_dinamicos || {}
     ];
 
     const result = await pool.query(query, values);
@@ -135,20 +140,24 @@ const updatePaciente = async (req, res) => {
       psicologo_varon,
       practicante,
       pregunta,
+      // Nuevo campo para campos dinámicos
+      campos_dinamicos
     } = req.body;
 
+    // Query modificado para incluir campos_dinamicos
     const query = `
-            UPDATE perfiles_pacientes SET
-                email = $1, nombre = $2, apellido = $3, rut = $4, edad = $5,
-                region = $6, comuna = $7, ciudad = $8, direccion = $9,
-                telefono = $10, nombre_contacto_emergencia = $11,
-                telefono_contacto_emergencia = $12, motivo_consulta = $13,
-                diagnostico = $14, sintomas = $15, horarios = $16,
-                arancel = $17, prevision = $18, modalidad = $19,
-                psicologo_varon = $20, practicante = $21, pregunta = $22
-            WHERE id = $23
-            RETURNING *;
-        `;
+      UPDATE perfiles_pacientes SET
+        email = $1, nombre = $2, apellido = $3, rut = $4, edad = $5,
+        region = $6, comuna = $7, ciudad = $8, direccion = $9,
+        telefono = $10, nombre_contacto_emergencia = $11,
+        telefono_contacto_emergencia = $12, motivo_consulta = $13,
+        diagnostico = $14, sintomas = $15, horarios = $16,
+        arancel = $17, prevision = $18, modalidad = $19,
+        psicologo_varon = $20, practicante = $21, pregunta = $22,
+        campos_dinamicos = $23, ultima_actualizacion = CURRENT_TIMESTAMP
+      WHERE id = $24
+      RETURNING *;
+    `;
 
     const values = [
       email,
@@ -170,10 +179,11 @@ const updatePaciente = async (req, res) => {
       arancel,
       prevision,
       modalidad,
-      psicologo_varon === "true",
-      practicante === "Si",
+      psicologo_varon === "true" || psicologo_varon === true,
+      practicante === "Si" || practicante === true,
       pregunta,
-      id,
+      campos_dinamicos || {},
+      id
     ];
 
     const result = await pool.query(query, values);
