@@ -18,7 +18,7 @@ const ClientForm = () => {
   const [formFields] = useState([
     {
       type: "text",
-      label: "Correo",
+      label: "Correo electrónico",
       required: true,
       id: "email_field",
     },
@@ -36,7 +36,7 @@ const ClientForm = () => {
     },
     {
       type: "text",
-      label: "Rut",
+      label: "RUT (1.111.111-1)",
       required: true,
       id: "rut_field",
     },
@@ -48,7 +48,7 @@ const ClientForm = () => {
     },
     {
       type: "dropdown",
-      label: "Region",
+      label: "Región",
       required: true,
       id: "Region_field",
       options: regiones.map((region) => region.nombre),
@@ -68,13 +68,13 @@ const ClientForm = () => {
     },
     {
       type: "text",
-      label: "Direccion",
+      label: "Dirección",
       required: true,
       id: "Direccion_field",
     },
     {
       type: "text",
-      label: "Telefono",
+      label: "Teléfono de contacto (+56 999999999)",
       required: true,
       id: "Telefono_field",
     },
@@ -86,25 +86,25 @@ const ClientForm = () => {
     },
     {
       type: "text",
-      label: "Telefono contacto de emergencia",
+      label: "Teléfono contacto de emergencia (+56 999999999)",
       required: true,
       id: "Telefono_contacto_emergencia_field",
     },
     {
       type: "text",
-      label: "Motivo consulta",
+      label: "Breve razón de atención psicológica (motivo de consulta)",
       required: true,
       id: "Motivo_consulta_field",
     },
     {
       type: "text",
-      label: "Diagnostico",
+      label: "¿Tienes o has recibido algún diagnóstico? Si es así, señala cuál(es), si no, puedes saltar esta pregunta.",
       required: true,
       id: "diagnostico_field",
     },
     {
       type: "text",
-      label: "Sintomas",
+      label: "¿Qué síntomas tienes? (falta de sueño, mucho apetito o disminución de este, ideas de muerte, ataques de pánico, u cualquier otro que consideres relevante de mencionar). Si no tienes síntomas puedes saltar esta pregunta.",
       required: true,
       id: "Sintomas_field",
     },
@@ -142,18 +142,27 @@ const ClientForm = () => {
     },
     {
       type: "dropdown",
-      label: "Arancel",
+      label:  `Tenemos diferentes tipos de arancel por sesión según tú capacidad de pago.
+
+  - Arancel diferencial equipo clínico de REDPSICOFEM de $16.000 a $25.000: Cupos a bajo costo con pasantes, es decir, psicologxs egresados que se encuentran en proceso de formación en nuestro centro clínico. ONLINE O PRESENCIAL en Santiago de Chile.
+
+- Arancel Diferencial red de derivación $25.000-$29.000: Derivación a nuestra Red de Derivación Segura y Feminista para obtener arancel menor a $30.000. Online o presencial en todo Chile.
+
+- Arancel equipo clínico REDPSICOFEM Desde $30.000 a $35.000 o red de derivación: El arancel estándar de nuestros psicologxs del centro clínico es de $30.000 Online o presencial en Santiago de Chile, en caso de buscar atención presencial en otra ciudad o falta de cupos en el centro se derivará a nuestra Red de Derivación Segura y Feminista.
+
+- Arancel mayor $35.000-$40.000: Arancel con nuestro equipo clínico. Online o presencial en Santiago de Chile. En caso de buscar atención presencial en otra ciudad o falta de cupos en el centro se derivará a nuestra Red de Derivación Segura y Feminista. Este arancel nos ayuda a permitir ofrecer aranceles bajos para personas que lo necesitan. Siempre que puedas pagar este monto, te pedimos que por favor lo selecciones, puesto que esto nos ayuda a sostener un sistema justo de acceso a la salud mental.`,
       required: true,
       id: "Arancel_field",
       options: [
-        "Arancel equipo clínico REDPSICOFEM desde $30.000 a $35.000 (o red de derivacion)",
+        "Arancel diferencial equipo clínico de REDPSICOFEM de $16.000 a $25.000",
         "Arancel Diferencial (Red Derivacion) $25.000-29.000",
+        "Arancel equipo clínico REDPSICOFEM Desde $30.000 a $35.000 (o red de derivacion)",
         "Arancel mayor $35.000-$40.000",
       ],
     },
     {
       type: "dropdown",
-      label: "Prevision",
+      label: "¿Tienes Isapre o fonasa?",
       required: true,
       id: "Prevision_field",
       options: ["Fonasa", "Isapre"],
