@@ -20,7 +20,7 @@ function App() {
           } />
           
           {/* Ruta para el dashboard */}
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/formularioterapeuta" element={<FormularioTerapeuta />} />
           <Route path="/admin/campos" element={<GestionCampos />} />
           <Route path="/gracias" element={<Agradecimiento />} />
