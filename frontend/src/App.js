@@ -4,6 +4,7 @@ import Formulario from './components/forms/ConstructorFormulario';
 import Dashboard from './pages/admin/Dashboard';
 import Terapeutas from './components/profile/Terapeutas';
 import FormularioTerapeuta from './components/forms/FormularioTeraputa';
+import FormularioTerapeutaWizard from './components/forms/FormularioTerapeutaWizard';
 import GestionCampos from './components/admin/GestionCampos';
 import Agradecimiento from './pages/Agradecimiento';
 
@@ -22,6 +23,7 @@ function App() {
           {/* Ruta para el dashboard */}
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/formularioterapeuta" element={<FormularioTerapeuta />} />
+          <Route path="/registro-terapeuta" element={<FormularioTerapeutaWizard />} />
           <Route path="/admin/campos" element={<GestionCampos />} />
           <Route path="/gracias" element={<Agradecimiento />} />
           

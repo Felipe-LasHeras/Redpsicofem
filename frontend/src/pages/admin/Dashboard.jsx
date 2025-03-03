@@ -7,6 +7,7 @@ function Dashboard() {
   const [activeTab, setActiveTab] = useState("pacientes");
   const [pacientes, setPacientes] = useState([]);
   const [terapeutas, setTerapeutas] = useState([]);
+  const [tipoTerapeuta, setTipoTerapeuta] = useState("todos"); // Nuevo estado para el filtro
   const [expandedCard, setExpandedCard] = useState(null);
 
   useEffect(() => {
@@ -16,7 +17,13 @@ function Dashboard() {
           const pacientesData = await pacientesApi.getAll();
           setPacientes(pacientesData);
         } else {
-          const terapeutasData = await terapeutasApi.getAll();
+          // Obtener terapeutas según el filtro seleccionado
+          let terapeutasData;
+          if (tipoTerapeuta === "todos") {
+            terapeutasData = await terapeutasApi.getAll();
+          } else {
+            terapeutasData = await terapeutasApi.getByTipo(tipoTerapeuta);
+          }
           setTerapeutas(terapeutasData);
         }
       } catch (error) {
@@ -25,7 +32,7 @@ function Dashboard() {
     };
 
     fetchData();
-  }, [activeTab]);
+  }, [activeTab, tipoTerapeuta]); // Añadir tipoTerapeuta como dependencia
 
   const previewFieldsPacientes = [
     "email",
@@ -41,7 +48,7 @@ function Dashboard() {
   const previewFieldsTerapeutas = [
     "nombre",
     "apellido",
-    "tipo_terapeuta",
+    "tipo_terapeuta_nombre", // Añadido para mostrar el tipo
     "especialidad",
     "comuna",
     "lugar_atencion",
@@ -79,14 +86,60 @@ function Dashboard() {
     campos_dinamicos: "Campos adicionales",
     
     // Campos específicos de terapeutas
-    tipo_terapeuta: "Tipo de Terapeuta",
+    tipo_terapeuta: "Tipo de Terapeuta (Legacy)",
+    tipo_terapeuta_nombre: "Tipo de Terapeuta",
     especialidad: "Especialidad",
     lugar_atencion: "Lugar de Atención",
     valor_consulta: "Valor Consulta",
     descripcion: "Descripción",
     edad_atencion: "Edad de Atención",
     tipo_atencion: "Tipo de Atención",
+    direccion_atencion: "Dirección de Atención",
+    atiende_ninos: "Atiende Niños",
+    atiende_adolescentes: "Atiende Adolescentes",
+    atiende_adultos: "Atiende Adultos",
+    atiende_hombre_cis: "Atiende Hombre Cis",
+    atiende_presencial: "Atiende Presencial",
+    atiende_online: "Atiende Online",
+    arancel_diferencial: "Arancel Diferencial",
+    valor_general_atencion: "Valor General",
+    cupos_30000_35000: "Cupos $30.000-$35.000",
+    cupos_25000_29000: "Cupos $25.000-$29.000",
+    cupos_20000_24000: "Cupos $20.000-$24.000",
+    cupos_15000_19000: "Cupos $15.000-$19.000",
+    perfil_reservo: "Perfil Reservo"
   };
+  
+  // Añadir selector de tipo de terapeuta en la parte superior
+  const renderTerapeutasFilter = () => {
+    if (activeTab !== "terapeutas") return null;
+
+    return (
+      <div className="mb-4">
+        <div className="btn-group">
+          <button
+            className={`btn ${tipoTerapeuta === "todos" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => setTipoTerapeuta("todos")}
+          >
+            Todos
+          </button>
+          <button
+            className={`btn ${tipoTerapeuta === "Redpsicofem" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => setTipoTerapeuta("Redpsicofem")}
+          >
+            Redpsicofem
+          </button>
+          <button
+            className={`btn ${tipoTerapeuta === "Red derivacion" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => setTipoTerapeuta("Red derivacion")}
+          >
+            Red de Derivación
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const renderCards = (dataList, previewFields) => {
     if (dataList.length === 0) {
       return <div className="container mt-4">No hay datos para mostrar</div>;
@@ -113,6 +166,11 @@ function Dashboard() {
                   <h5 className="card-title mb-0">
                     {data.nombre} {data.apellido}
                   </h5>
+                  {data.tipo_terapeuta_nombre && (
+                    <span className="badge bg-info">
+                      {data.tipo_terapeuta_nombre}
+                    </span>
+                  )}
                 </div>
 
                 <div className="card-body">
@@ -151,6 +209,11 @@ function Dashboard() {
                         );
                       }
 
+                      // Manejo especial para campos booleanos
+                      if (typeof value === "boolean") {
+                        value = value ? "Sí" : "No";
+                      }
+
                       return (
                         <div key={key} className="col">
                           <div className="p-3 bg-light rounded h-100">
@@ -158,11 +221,7 @@ function Dashboard() {
                               {fieldNameMap[key] || key}
                             </h6>
                             <p className="mb-0 text-break small">
-                              {typeof value === "boolean"
-                                ? value
-                                  ? "Sí"
-                                  : "No"
-                                : value || "No especificado"}
+                              {value || "No especificado"}
                             </p>
                           </div>
                         </div>
@@ -194,6 +253,9 @@ function Dashboard() {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="display-4">Dashboard</h1>
         <div className="d-flex gap-2">
+          <Link to="/registro-terapeuta" className="btn btn-success">
+            <i className="bi bi-plus-circle me-1"></i> Nuevo Terapeuta
+          </Link>
           <div className="btn-group">
             <button
               className={`btn btn-lg ${
@@ -213,13 +275,16 @@ function Dashboard() {
             </button>
           </div>
           
-          {/* Enlace a gestión de campos */}
           <Link to="/admin/campos" className="btn btn-lg btn-outline-success">
             Gestionar Campos
           </Link>
         </div>
       </div>
 
+      {/* Filtro de tipo de terapeuta */}
+      {renderTerapeutasFilter()}
+
+      {/* Renderizado de datos */}
       {activeTab === "pacientes"
         ? renderCards(pacientes, previewFieldsPacientes)
         : renderCards(terapeutas, previewFieldsTerapeutas)}

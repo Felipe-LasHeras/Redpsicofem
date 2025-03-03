@@ -27,26 +27,22 @@ export const terapeutasApi = {
     }
   },
 
+  // Nueva función para obtener terapeutas por tipo
+  getByTipo: async (tipo) => {
+    try {
+      const response = await fetch(`${API_URL}/terapeutas/tipo/${tipo}`);
+      if (!response.ok) {
+        throw new Error(`Error al obtener terapeutas de tipo ${tipo}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error(`Error en getByTipo (${tipo}):`, error);
+      throw error;
+    }
+  },
+
   create: async (terapeutaData) => {
     try {
-      const formattedData = {
-        nombre: terapeutaData.nombre,
-        apellido: terapeutaData.apellido,
-        tipo_terapeuta: terapeutaData.tipo_terapeuta,
-        especialidad: terapeutaData.especialidad,
-        region: terapeutaData.region,
-        comuna: terapeutaData.comuna,
-        lugar_atencion: terapeutaData.lugar_atencion,
-        valor_consulta: parseInt(terapeutaData.valor_consulta),
-        descripcion: terapeutaData.descripcion,
-        rut: terapeutaData.rut,
-        edad_atencion: terapeutaData.edad_atencion,
-        tipo_atencion: terapeutaData.tipo_atencion,
-        horarios: terapeutaData.horarios,
-      };
-
-      console.log("Datos a enviar:", formattedData);
-
       const response = await fetch(`${API_URL}/terapeutas`, {
         method: "POST",
         headers: {
@@ -54,7 +50,7 @@ export const terapeutasApi = {
           Accept: "application/json",
         },
         credentials: "include",
-        body: JSON.stringify(formattedData),
+        body: JSON.stringify(terapeutaData),
       });
 
       if (!response.ok) {

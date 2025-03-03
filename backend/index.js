@@ -7,6 +7,7 @@ const camposRoutes = require("./server/routes/campos/campos.router"); // Nuevo r
 const { createTable: createTablePacientes } = require("./db/tablaPacientes");
 const { createTable: createTableTerapeutas } = require("./db/tablaTerapeuta");
 const { actualizarTablaPacientes } = require("./db/actualizarTablaPacientes");
+const { actualizarTablaTerapeutas } = require("./db/actualizarTablaTerapeutas");
 
 const app = express();
 
@@ -31,6 +32,7 @@ const initDatabase = async () => {
     await createTablePacientes();
     await createTableTerapeutas();
     await actualizarTablaPacientes(); // Ejecutar la actualización
+    await actualizarTablaTerapeutas(); // Ejecutar la actualización de terapeutas
     console.log("Tablas creadas exitosamente");
   } catch (error) {
     console.error("Error al crear las tablas:", error);
@@ -42,5 +44,5 @@ initDatabase();
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en el puerto ${3001}`);
+  console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
