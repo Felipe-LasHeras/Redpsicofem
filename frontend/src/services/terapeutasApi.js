@@ -53,13 +53,20 @@ export const terapeutasApi = {
         body: JSON.stringify(terapeutaData),
       });
 
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error al crear terapeuta");
+        // Verificar si es un error de duplicación - Corregido con paréntesis
+        if ((response.status === 500 && responseData.error) && 
+            (responseData.error.includes('duplicada') || 
+             (responseData.details && responseData.details.includes('duplicada')))) {
+          throw new Error(`Ya existe un terapeuta con el RUT ${terapeutaData.rut}`);
+        }
+        
+        throw new Error(responseData.error || responseData.message || "Error al crear terapeuta");
       }
 
-      const data = await response.json();
-      return { success: true, data };
+      return { success: true, data: responseData };
     } catch (error) {
       console.error("Error detallado:", error);
       throw error;
@@ -77,7 +84,8 @@ export const terapeutasApi = {
       });
 
       if (!response.ok) {
-        throw new Error("Error al actualizar terapeuta");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al actualizar terapeuta");
       }
       return await response.json();
     } catch (error) {
@@ -93,7 +101,8 @@ export const terapeutasApi = {
       });
 
       if (!response.ok) {
-        throw new Error("Error al eliminar terapeuta");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al eliminar terapeuta");
       }
       return await response.json();
     } catch (error) {
@@ -105,6 +114,10 @@ export const terapeutasApi = {
   // Actualizar solo los horarios de un terapeuta
   updateHorarios: async (id, horariosData) => {
     try {
+      if (!id) {
+        throw new Error("ID de terapeuta no válido");
+      }
+      
       const response = await fetch(`${API_URL}/terapeutas/${id}/horarios`, {
         method: "PATCH",
         headers: {
@@ -114,7 +127,8 @@ export const terapeutasApi = {
       });
 
       if (!response.ok) {
-        throw new Error("Error al actualizar horarios");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al actualizar horarios");
       }
       return await response.json();
     } catch (error) {
@@ -122,4 +136,15 @@ export const terapeutasApi = {
       throw error;
     }
   },
+  
+  // Función para verificar si un RUT ya existe
+  checkRutExists: async (rut) => {
+    try {
+      const allTerapeutas = await terapeutasApi.getAll();
+      return allTerapeutas.some(terapeuta => terapeuta.rut === rut);
+    } catch (error) {
+      console.error("Error verificando RUT existente:", error);
+      return false; // Asumimos que no existe en caso de error
+    }
+  }
 };

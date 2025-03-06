@@ -56,16 +56,6 @@ const FormularioTerapeutaWizard = () => {
     }
   }, [formData.region]);
   
-  // Opciones de horarios
-  const opcionesHorarios = [
-    { label: "09:00 - 10:00", value: "09:00-10:00" },
-    { label: "10:00 - 11:00", value: "10:00-11:00" },
-    { label: "11:00 - 12:00", value: "11:00-12:00" },
-    { label: "12:00 - 13:00", value: "12:00-13:00" },
-    { label: "15:00 - 16:00", value: "15:00-16:00" },
-    { label: "16:00 - 17:00", value: "16:00-17:00" },
-  ];
-  
   const handleChange = (e) => {
     const { id, value, type, checked } = e.target;
     
@@ -97,7 +87,32 @@ const FormularioTerapeutaWizard = () => {
     }
   };
   
-  const nextStep = () => {
+  // Función para verificar si un RUT ya existe
+  const validateRut = async () => {
+    if (!formData.rut) return true;
+    
+    try {
+      setLoading(true);
+      const exists = await terapeutasApi.checkRutExists(formData.rut);
+      
+      if (exists) {
+        setMensaje({
+          tipo: "error",
+          texto: `El RUT ${formData.rut} ya está registrado en el sistema. Por favor verifique o utilice otro RUT.`
+        });
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error al validar RUT:", error);
+      return true; // En caso de error en la validación, permitimos continuar
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const nextStep = async () => {
     // Validación básica antes de avanzar
     if (paso === 1) {
       if (!formData.nombre || !formData.apellido || !formData.mail || !formData.rut) {
@@ -106,6 +121,12 @@ const FormularioTerapeutaWizard = () => {
           texto: "Por favor complete todos los campos obligatorios",
         });
         return;
+      }
+      
+      // Si es paso 1 y tenemos RUT, validar si ya existe
+      if (formData.rut) {
+        const rutValido = await validateRut();
+        if (!rutValido) return;
       }
     } else if (paso === 2) {
       if (!formData.tipo_terapeuta_nombre) {
@@ -131,11 +152,6 @@ const FormularioTerapeutaWizard = () => {
     setMensaje({ tipo: "", texto: "" });
     
     try {
-      // Recopilar horarios seleccionados
-      const horariosSeleccionados = Object.entries(formData)
-        .filter(([key, value]) => key.startsWith("horario_") && value)
-        .map(([key]) => key.replace("horario_", ""));
-      
       // Preparar datos para guardar
       const terapeutaData = {
         nombre: formData.nombre,
@@ -158,7 +174,7 @@ const FormularioTerapeutaWizard = () => {
         ].filter(Boolean).join(", "),
         tipo_atencion: formData.atiende_presencial && formData.atiende_online ? "Ambos" :
                        formData.atiende_presencial ? "Presencial" : "Online",
-        horarios: horariosSeleccionados.join(", "),
+        horarios: "", // Ya no recopilamos horarios aquí
         
         // Campos específicos
         direccion_atencion: formData.direccion_atencion,
@@ -180,26 +196,58 @@ const FormularioTerapeutaWizard = () => {
         cupos_20000_24000: formData.tipo_terapeuta_nombre === "Red derivacion" ? 
                           parseInt(formData.cupos_20000_24000) || 0 : null,
         cupos_15000_19000: formData.tipo_terapeuta_nombre === "Red derivacion" ? 
-                          parseInt(formData.cupos_15000_19000) || 0 : null
+                          parseInt(formData.cupos_15000_19000) || 0 : null,
+        
+        // Inicializar estructuras de horarios
+        horarios_online: JSON.stringify({
+          lunes: [],
+          martes: [],
+          miercoles: [],
+          jueves: [],
+          viernes: []
+        }),
+        horarios_presencial: JSON.stringify({
+          lunes: [],
+          martes: [],
+          miercoles: [],
+          jueves: [],
+          viernes: []
+        })
       };
       
-      const response = await terapeutasApi.create(terapeutaData);
-      
-      if (response.success) {
-        setMensaje({
-          tipo: "success",
-          texto: "¡Terapeuta registrado exitosamente!",
-        });
-        setTimeout(() => {
-          navigate("/admin/dashboard");
-        }, 2000);
-      } else {
-        throw new Error("No se pudo registrar el terapeuta");
+      try {
+        const response = await terapeutasApi.create(terapeutaData);
+        
+        if (response.data && response.data.id) {
+          setMensaje({
+            tipo: "success",
+            texto: "¡Terapeuta registrado exitosamente! Ahora podrás configurar sus horarios disponibles.",
+          });
+          setTimeout(() => {
+            navigate(`/terapeuta/${response.data.id}`);
+          }, 2000);
+        } else {
+          throw new Error("No se pudo registrar el terapeuta");
+        }
+      } catch (error) {
+        // Verificar si es un error de duplicación de RUT - Corregido con paréntesis
+        if ((error.message && error.message.includes("duplicada")) || 
+            (error.message && error.message.includes("Ya existe"))) {
+          setMensaje({
+            tipo: "error",
+            texto: `El RUT ${formData.rut} ya está registrado en el sistema. Por favor verifique el RUT o contacte al administrador.`,
+          });
+        } else {
+          setMensaje({
+            tipo: "error",
+            texto: `Error: ${error.message || "Hubo un error al guardar los datos"}`,
+          });
+        }
       }
     } catch (error) {
       setMensaje({
         tipo: "error",
-        texto: `Error: ${error.message || "Hubo un error al guardar los datos"}`,
+        texto: `Error: ${error.message || "Hubo un error al procesar el formulario"}`,
       });
     } finally {
       setLoading(false);
@@ -583,26 +631,9 @@ const FormularioTerapeutaWizard = () => {
           </div>
           
           <div className="col-12">
-            <label className="form-label mb-3">
-              Horarios disponibles <span className="text-danger">*</span>
-            </label>
-            <div className="row g-2">
-              {opcionesHorarios.map((horario) => (
-                <div className="col-md-6 col-lg-4" key={horario.value}>
-                  <div className="form-check">
-                    <input
-                      type="checkbox"
-                      className="form-check-input"
-                      id={`horario_${horario.value}`}
-                      checked={formData[`horario_${horario.value}`] || false}
-                      onChange={handleChange}
-                    />
-                    <label className="form-check-label" htmlFor={`horario_${horario.value}`}>
-                      {horario.label}
-                    </label>
-                  </div>
-                </div>
-              ))}
+            <div className="alert alert-info">
+              <i className="bi bi-info-circle me-2"></i>
+              <strong>Nota sobre horarios:</strong> Después de registrar al terapeuta, podrás configurar sus horarios disponibles para atención online y/o presencial desde la página de perfil.
             </div>
           </div>
         </div>
@@ -841,26 +872,9 @@ const FormularioTerapeutaWizard = () => {
           </div>
           
           <div className="col-12">
-            <label className="form-label mb-3">
-              Horarios disponibles <span className="text-danger">*</span>
-            </label>
-            <div className="row g-2">
-              {opcionesHorarios.map((horario) => (
-                <div className="col-md-6 col-lg-4" key={horario.value}>
-                  <div className="form-check">
-                    <input
-                      type="checkbox"
-                      className="form-check-input"
-                      id={`horario_${horario.value}`}
-                      checked={formData[`horario_${horario.value}`] || false}
-                      onChange={handleChange}
-                    />
-                    <label className="form-check-label" htmlFor={`horario_${horario.value}`}>
-                      {horario.label}
-                    </label>
-                  </div>
-                </div>
-              ))}
+            <div className="alert alert-info">
+              <i className="bi bi-info-circle me-2"></i>
+              <strong>Nota sobre horarios:</strong> Después de registrar al terapeuta, podrás configurar sus horarios disponibles para atención online y/o presencial desde la página de perfil.
             </div>
           </div>
         </div>

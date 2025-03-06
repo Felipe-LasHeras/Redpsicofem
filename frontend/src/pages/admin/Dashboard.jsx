@@ -111,6 +111,38 @@ function Dashboard() {
     horarios_presencial: "Horarios Presenciales"
   };
   
+  // Función para formatear valores que pueden ser objetos JSON
+  const formatValue = (key, value) => {
+    if (value === null || value === undefined) {
+      return "No especificado";
+    }
+    
+    // Si es un objeto y es horarios_online o horarios_presencial
+    if (typeof value === 'object' && (key === 'horarios_online' || key === 'horarios_presencial')) {
+      try {
+        // Intentamos formatear el objeto de horarios de manera legible
+        const diasSemana = Object.keys(value);
+        if (diasSemana.length === 0) return "Sin horarios configurados";
+        
+        return diasSemana
+          .filter(dia => Array.isArray(value[dia]) && value[dia].length > 0)
+          .map(dia => `${dia}: ${value[dia].join(', ')}`)
+          .join('; ');
+      } catch (error) {
+        console.error(`Error formateando ${key}:`, error);
+        return "Error en formato";
+      }
+    }
+    
+    // Si es un boolean lo convertimos a texto
+    if (typeof value === "boolean") {
+      return value ? "Sí" : "No";
+    }
+    
+    // Para otros casos simplemente convertimos a string
+    return String(value);
+  };
+  
   // Añadir selector de tipo de terapeuta en la parte superior
   const renderTerapeutasFilter = () => {
     if (activeTab !== "terapeutas") return null;
@@ -210,11 +242,6 @@ function Dashboard() {
                         );
                       }
 
-                      // Manejo especial para campos booleanos
-                      if (typeof value === "boolean") {
-                        value = value ? "Sí" : "No";
-                      }
-
                       return (
                         <div key={key} className="col">
                           <div className="p-3 bg-light rounded h-100">
@@ -222,7 +249,7 @@ function Dashboard() {
                               {fieldNameMap[key] || key}
                             </h6>
                             <p className="mb-0 text-break small">
-                              {value || "No especificado"}
+                              {formatValue(key, value)}
                             </p>
                           </div>
                         </div>
