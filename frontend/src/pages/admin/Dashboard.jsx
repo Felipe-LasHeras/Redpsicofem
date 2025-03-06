@@ -7,7 +7,7 @@ function Dashboard() {
   const [activeTab, setActiveTab] = useState("pacientes");
   const [pacientes, setPacientes] = useState([]);
   const [terapeutas, setTerapeutas] = useState([]);
-  const [tipoTerapeuta, setTipoTerapeuta] = useState("todos"); // Nuevo estado para el filtro
+  const [tipoTerapeuta, setTipoTerapeuta] = useState("todos"); // Estado para el filtro
   const [expandedCard, setExpandedCard] = useState(null);
 
   useEffect(() => {
@@ -107,7 +107,8 @@ function Dashboard() {
     cupos_25000_29000: "Cupos $25.000-$29.000",
     cupos_20000_24000: "Cupos $20.000-$24.000",
     cupos_15000_19000: "Cupos $15.000-$19.000",
-    perfil_reservo: "Perfil Reservo"
+    horarios_online: "Horarios Online",
+    horarios_presencial: "Horarios Presenciales"
   };
   
   // Añadir selector de tipo de terapeuta en la parte superior
@@ -231,14 +232,26 @@ function Dashboard() {
                 </div>
 
                 <div className="card-footer bg-white border-top-0">
-                  <button
-                    onClick={() =>
-                      setExpandedCard(expandedCard === index ? null : index)
-                    }
-                    className="btn btn-primary w-100"
-                  >
-                    {isExpanded ? "Ver menos" : "Ver más"}
-                  </button>
+                  <div className="d-flex gap-2">
+                    <button
+                      onClick={() =>
+                        setExpandedCard(expandedCard === index ? null : index)
+                      }
+                      className="btn btn-primary flex-grow-1"
+                    >
+                      {isExpanded ? "Ver menos" : "Ver más"}
+                    </button>
+                    
+                    {activeTab === "terapeutas" && (
+                      <Link 
+                        to={`/terapeuta/${data.id}`} 
+                        className="btn btn-outline-primary"
+                        title="Ver perfil completo"
+                      >
+                        <i className="bi bi-person-badge"></i>
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

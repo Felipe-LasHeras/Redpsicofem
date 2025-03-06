@@ -40,10 +40,7 @@ const FormularioTerapeutaWizard = () => {
     cupos_30000_35000: 0,
     cupos_25000_29000: 0,
     cupos_20000_24000: 0,
-    cupos_15000_19000: 0,
-    
-    // Campos específicos Redpsicofem
-    perfil_reservo: "",
+    cupos_15000_19000: 0
   });
   
   // Cargar comunas cuando cambia la región
@@ -183,11 +180,7 @@ const FormularioTerapeutaWizard = () => {
         cupos_20000_24000: formData.tipo_terapeuta_nombre === "Red derivacion" ? 
                           parseInt(formData.cupos_20000_24000) || 0 : null,
         cupos_15000_19000: formData.tipo_terapeuta_nombre === "Red derivacion" ? 
-                          parseInt(formData.cupos_15000_19000) || 0 : null,
-        
-        // Campos Redpsicofem
-        perfil_reservo: formData.tipo_terapeuta_nombre === "Redpsicofem" ? 
-                       formData.perfil_reservo : null
+                          parseInt(formData.cupos_15000_19000) || 0 : null
       };
       
       const response = await terapeutasApi.create(terapeutaData);
@@ -586,22 +579,6 @@ const FormularioTerapeutaWizard = () => {
               <label className="form-check-label" htmlFor="arancel_diferencial">
                 Ofrece arancel diferencial
               </label>
-            </div>
-          </div>
-          
-          <div className="col-12">
-            <div className="form-group">
-              <label htmlFor="perfil_reservo" className="form-label">
-                Perfil Reservo
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="perfil_reservo"
-                value={formData.perfil_reservo}
-                onChange={handleChange}
-                placeholder="URL de tu perfil en Reservo (opcional)"
-              />
             </div>
           </div>
           

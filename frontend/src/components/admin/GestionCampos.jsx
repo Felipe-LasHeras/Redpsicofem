@@ -73,13 +73,13 @@ const GestionCampos = () => {
       };
 
       let resultado;
-      if (editingCampo) {
-        resultado = await camposApi.update(editingCampo.id, campoData);
-        setMensaje({ tipo: "success", texto: "Campo actualizado exitosamente" });
-      } else {
-        resultado = await camposApi.create(campoData);
-        setMensaje({ tipo: "success", texto: "Campo creado exitosamente" });
-      }
+if (editingCampo) {
+  resultado = await camposApi.update(editingCampo.id, campoData);
+  setMensaje({ tipo: "success", texto: `Campo '${resultado.etiqueta}' actualizado exitosamente` });
+} else {
+  resultado = await camposApi.create(campoData);
+  setMensaje({ tipo: "success", texto: `Campo '${resultado.etiqueta}' creado exitosamente` });
+}
 
       resetForm();
       cargarCampos();
@@ -153,7 +153,9 @@ const GestionCampos = () => {
             <div className="card-body">
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                  <label htmlFor="nombre_campo" className="form-label">Nombre Interno</label>
+                  <label htmlFor="nombre_campo" className="form-label">
+                    Nombre Interno <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="text"
                     className="form-control"
@@ -163,11 +165,16 @@ const GestionCampos = () => {
                     onChange={handleInputChange}
                     required
                   />
-                  <small className="text-muted">Este nombre se usará internamente y en la base de datos</small>
+                  <small className="text-muted">
+  Este nombre se usará como identificador técnico en la base de datos. 
+  Ejemplo: Si el campo es "Teléfono Alternativo", un buen nombre interno sería "telefono_alternativo" (sin espacios ni caracteres especiales).
+</small>
                 </div>
 
                 <div className="mb-3">
-                  <label htmlFor="etiqueta" className="form-label">Etiqueta</label>
+                  <label htmlFor="etiqueta" className="form-label">
+                    Etiqueta <span className="text-danger">*</span>
+                  </label>
                   <input
                     type="text"
                     className="form-control"

@@ -101,4 +101,25 @@ export const terapeutasApi = {
       throw error;
     }
   },
+  
+  // Actualizar solo los horarios de un terapeuta
+  updateHorarios: async (id, horariosData) => {
+    try {
+      const response = await fetch(`${API_URL}/terapeutas/${id}/horarios`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(horariosData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al actualizar horarios");
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error en updateHorarios:", error);
+      throw error;
+    }
+  },
 };

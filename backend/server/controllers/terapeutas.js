@@ -58,8 +58,7 @@ const crearTerapeuta = async (req, res) => {
       cupos_30000_35000,
       cupos_25000_29000,
       cupos_20000_24000,
-      cupos_15000_19000,
-      perfil_reservo
+      cupos_15000_19000
     } = req.body;
 
     console.log("Datos recibidos:", req.body);
@@ -92,10 +91,9 @@ const crearTerapeuta = async (req, res) => {
         cupos_30000_35000,
         cupos_25000_29000,
         cupos_20000_24000,
-        cupos_15000_19000,
-        perfil_reservo
+        cupos_15000_19000
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
       RETURNING *;
     `;
 
@@ -126,8 +124,7 @@ const crearTerapeuta = async (req, res) => {
       cupos_30000_35000,
       cupos_25000_29000,
       cupos_20000_24000,
-      cupos_15000_19000,
-      perfil_reservo
+      cupos_15000_19000
     ];
 
     console.log("Valores a insertar:", values);
@@ -174,8 +171,7 @@ const updateTerapeuta = async (req, res) => {
       cupos_30000_35000,
       cupos_25000_29000,
       cupos_20000_24000,
-      cupos_15000_19000,
-      perfil_reservo
+      cupos_15000_19000
     } = req.body;
 
     const query = `
@@ -206,9 +202,8 @@ const updateTerapeuta = async (req, res) => {
         cupos_30000_35000 = $24,
         cupos_25000_29000 = $25,
         cupos_20000_24000 = $26,
-        cupos_15000_19000 = $27,
-        perfil_reservo = $28
-      WHERE id = $29
+        cupos_15000_19000 = $27
+      WHERE id = $28
       RETURNING *;
     `;
 
@@ -240,7 +235,6 @@ const updateTerapeuta = async (req, res) => {
       cupos_25000_29000,
       cupos_20000_24000,
       cupos_15000_19000,
-      perfil_reservo,
       id
     ];
 
@@ -293,11 +287,45 @@ const getTerapeutasPorTipo = async (req, res) => {
   }
 };
 
+// Función específica para actualizar solo los horarios de un terapeuta
+const updateHorariosTerapeuta = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { horarios_online, horarios_presencial } = req.body;
+
+    const query = `
+      UPDATE psicologos SET
+        horarios_online = $1,
+        horarios_presencial = $2
+      WHERE id = $3
+      RETURNING *;
+    `;
+
+    const values = [
+      horarios_online,
+      horarios_presencial,
+      id
+    ];
+
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Terapeuta no encontrado" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error("Error al actualizar horarios del terapeuta:", error);
+    res.status(500).json({ error: "Error al actualizar los horarios del terapeuta" });
+  }
+};
+
 module.exports = {
   getAllTerapeutas,
   getTerapeutaById,
   crearTerapeuta,
   updateTerapeuta,
   deleteTerapeuta,
-  getTerapeutasPorTipo
+  getTerapeutasPorTipo,
+  updateHorariosTerapeuta
 };

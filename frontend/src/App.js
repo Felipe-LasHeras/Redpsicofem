@@ -7,6 +7,7 @@ import FormularioTerapeuta from './components/forms/FormularioTeraputa';
 import FormularioTerapeutaWizard from './components/forms/FormularioTerapeutaWizard';
 import GestionCampos from './components/admin/GestionCampos';
 import Agradecimiento from './pages/Agradecimiento';
+import PerfilTerapeuta from './components/profile/PerfilTerapeuta';
 
 function App() {
   return (
@@ -26,13 +27,15 @@ function App() {
           <Route path="/registro-terapeuta" element={<FormularioTerapeutaWizard />} />
           <Route path="/admin/campos" element={<GestionCampos />} />
           <Route path="/gracias" element={<Agradecimiento />} />
+          <Route path="/terapeutas" element={<Terapeutas/>}/>
+          <Route path="/terapeuta/:id" element={<PerfilTerapeuta />} />
+          <Route path="/terapeuta/perfil" element={<PerfilTerapeuta />} />
           
           {/* Puedes agregar más rutas aquí */}
           {/* <Route path="/otra-pagina" element={<OtraPagina />} /> */}
           
           {/* Ruta para manejar páginas no encontradas */}
           <Route path="*" element={<div>404 - Página no encontrada</div>} />
-          <Route path="/terapeutas"  element={<Terapeutas/>}/>
         </Routes>
       </div>
     </BrowserRouter>

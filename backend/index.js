@@ -8,6 +8,7 @@ const { createTable: createTablePacientes } = require("./db/tablaPacientes");
 const { createTable: createTableTerapeutas } = require("./db/tablaTerapeuta");
 const { actualizarTablaPacientes } = require("./db/actualizarTablaPacientes");
 const { actualizarTablaTerapeutas } = require("./db/actualizarTablaTerapeutas");
+const { actualizarTablaHorarios } = require("./db/actualizarTablaHorarios");
 
 const app = express();
 
@@ -16,7 +17,7 @@ app.use(
   cors({
     origin: "http://localhost:3000", // Tu frontend
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Accept"],
   })
 );
@@ -33,6 +34,7 @@ const initDatabase = async () => {
     await createTableTerapeutas();
     await actualizarTablaPacientes(); // Ejecutar la actualización
     await actualizarTablaTerapeutas(); // Ejecutar la actualización de terapeutas
+    await actualizarTablaHorarios(); // Ejecutar la actualización de horarios
     console.log("Tablas creadas exitosamente");
   } catch (error) {
     console.error("Error al crear las tablas:", error);
