@@ -19,6 +19,7 @@ const getPacienteById = async (req, res) => {
     const { id } = req.params;
     const query = "SELECT * FROM perfiles_pacientes WHERE id = $1";
     const result = await pool.query(query, [id]);
+    console.log(result);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Paciente no encontrado" });
