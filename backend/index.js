@@ -9,6 +9,7 @@ const { createTable: createTableTerapeutas } = require("./db/tablaTerapeuta");
 const { actualizarTablaPacientes } = require("./db/actualizarTablaPacientes");
 const { actualizarTablaTerapeutas } = require("./db/actualizarTablaTerapeutas");
 const { actualizarTablaHorarios } = require("./db/actualizarTablaHorarios");
+const { requestLogger }  = require("./middlewares/logger")
 
 const app = express();
 
@@ -22,10 +23,16 @@ app.use(
   })
 );
 
+app.use(requestLogger)
 app.use(express.json());
-app.use("/api/pacientes", pacientesRoutes);
+app.get("/api", (req, res)=>{
+  console.log("Hola")
+  res.status(200).send({ message: 'Health Check!' })
+})
+app.use("/api/pacientes", pacientesRoutes);//Cambiar las consultas de api por rutas
 app.use("/api/terapeutas", terapeutasRoutes);
 app.use("/api/campos", camposRoutes); // Nueva ruta para la API de campos
+
 
 // Inicializar las bases de datos
 const initDatabase = async () => {
