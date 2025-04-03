@@ -1,12 +1,18 @@
 import { supabase } from '../config/supabase';
 
 const FUNCTIONS_URL = process.env.REACT_APP_SUPABASE_FUNCTIONS_URL;
+const ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
 export const camposApi = {
   // Obtener todos los campos
   getAll: async () => {
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/campos`);
+      const response = await fetch(`${FUNCTIONS_URL}/campos`, {
+        headers: {
+          'apikey': ANON_KEY,
+          'Authorization': `Bearer ${ANON_KEY}`
+        }
+      });
       if (!response.ok) throw new Error('Error al obtener campos');
       return await response.json();
     } catch (error) {

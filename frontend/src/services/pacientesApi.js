@@ -1,12 +1,18 @@
 import { supabase } from '../config/supabase';
 
 const FUNCTIONS_URL = process.env.REACT_APP_SUPABASE_FUNCTIONS_URL;
+const ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
 export const pacientesApi = {
   // Obtener todos los pacientes
   getAll: async () => {
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/pacientes`);
+      const response = await fetch(`${FUNCTIONS_URL}/pacientes`, {
+        headers: {
+          'apikey': ANON_KEY,
+          'Authorization': `Bearer ${ANON_KEY}`
+        }
+      });
       if (!response.ok) throw new Error('Error al obtener pacientes');
       return await response.json();
     } catch (error) {
@@ -18,11 +24,21 @@ export const pacientesApi = {
   // Obtener un paciente por ID
   getById: async (id) => {
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/pacientes/${id}`);
-      if (!response.ok) throw new Error('Error al obtener paciente');
+      const response = await fetch(`${FUNCTIONS_URL}/pacientes`, {
+        headers: {
+          'apikey': ANON_KEY,
+          'Authorization': `Bearer ${ANON_KEY}`
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || 'Error al obtener pacientes');
+      }
+      
       return await response.json();
     } catch (error) {
-      console.error('Error en getById:', error);
+      console.error('Error en getAll:', error);
       throw error;
     }
   },
