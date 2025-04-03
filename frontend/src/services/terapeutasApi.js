@@ -1,90 +1,131 @@
 import { supabase } from '../config/supabase';
 
+const FUNCTIONS_URL = process.env.REACT_APP_SUPABASE_FUNCTIONS_URL;
+
 export const terapeutasApi = {
   getAll: async () => {
-    const { data, error } = await supabase
-      .from('psicologos')
-      .select('*')
-      .order('created_at', { ascending: false });
-      
-    if (error) throw error;
-    return data;
+    try {
+      const response = await fetch(`${FUNCTIONS_URL}/terapeutas`);
+      if (!response.ok) throw new Error('Error al obtener terapeutas');
+      return await response.json();
+    } catch (error) {
+      console.error('Error en getAll:', error);
+      throw error;
+    }
   },
 
   getById: async (id) => {
-    const { data, error } = await supabase
-      .from('psicologos')
-      .select('*')
-      .eq('id', id)
-      .single();
-      
-    if (error) throw error;
-    return data;
+    try {
+      const response = await fetch(`${FUNCTIONS_URL}/terapeutas/${id}`);
+      if (!response.ok) throw new Error('Error al obtener terapeuta');
+      return await response.json();
+    } catch (error) {
+      console.error('Error en getById:', error);
+      throw error;
+    }
   },
 
   // Obtener terapeutas por tipo
   getByTipo: async (tipo) => {
-    const { data, error } = await supabase
-      .from('psicologos')
-      .select('*')
-      .eq('tipo_terapeuta_nombre', tipo)
-      .order('created_at', { ascending: false });
-      
-    if (error) throw error;
-    return data;
+    try {
+      const response = await fetch(`${FUNCTIONS_URL}/terapeutas/tipo/${tipo}`);
+      if (!response.ok) throw new Error(`Error al obtener terapeutas de tipo ${tipo}`);
+      return await response.json();
+    } catch (error) {
+      console.error('Error en getByTipo:', error);
+      throw error;
+    }
   },
 
   create: async (terapeutaData) => {
-    const { data, error } = await supabase
-      .from('psicologos')
-      .insert([terapeutaData])
-      .select();
+    try {
+      const response = await fetch(`${FUNCTIONS_URL}/terapeutas`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.auth.getSession()?.access_token || ''}`
+        },
+        body: JSON.stringify(terapeutaData)
+      });
       
-    if (error) throw error;
-    return { success: true, data: data[0] };
+      if (!response.ok) throw new Error('Error al crear terapeuta');
+      const data = await response.json();
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error en create:', error);
+      throw error;
+    }
   },
 
   update: async (id, terapeutaData) => {
-    const { data, error } = await supabase
-      .from('psicologos')
-      .update(terapeutaData)
-      .eq('id', id)
-      .select();
+    try {
+      const response = await fetch(`${FUNCTIONS_URL}/terapeutas/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.auth.getSession()?.access_token || ''}`
+        },
+        body: JSON.stringify(terapeutaData)
+      });
       
-    if (error) throw error;
-    return data[0];
+      if (!response.ok) throw new Error('Error al actualizar terapeuta');
+      return await response.json();
+    } catch (error) {
+      console.error('Error en update:', error);
+      throw error;
+    }
   },
 
   delete: async (id) => {
-    const { error } = await supabase
-      .from('psicologos')
-      .delete()
-      .eq('id', id);
+    try {
+      const response = await fetch(`${FUNCTIONS_URL}/terapeutas/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${supabase.auth.getSession()?.access_token || ''}`
+        }
+      });
       
-    if (error) throw error;
-    return { message: "Terapeuta eliminado exitosamente" };
+      if (!response.ok) throw new Error('Error al eliminar terapeuta');
+      return await response.json();
+    } catch (error) {
+      console.error('Error en delete:', error);
+      throw error;
+    }
   },
   
   // Actualizar solo los horarios de un terapeuta
   updateHorarios: async (id, horariosData) => {
-    const { data, error } = await supabase
-      .from('psicologos')
-      .update(horariosData)
-      .eq('id', id)
-      .select();
+    try {
+      const response = await fetch(`${FUNCTIONS_URL}/terapeutas/${id}/horarios`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.auth.getSession()?.access_token || ''}`
+        },
+        body: JSON.stringify(horariosData)
+      });
       
-    if (error) throw error;
-    return data[0];
+      if (!response.ok) throw new Error('Error al actualizar horarios');
+      return await response.json();
+    } catch (error) {
+      console.error('Error en updateHorarios:', error);
+      throw error;
+    }
   },
   
   // Verificar si un RUT ya existe
   checkRutExists: async (rut) => {
-    const { data, error } = await supabase
-      .from('psicologos')
-      .select('id')
-      .eq('rut', rut);
+    try {
+      // Esta implementación es diferente, ya que Supabase Functions no tiene un endpoint específico
+      // así que obtenemos todos los terapeutas y filtramos por RUT
+      const response = await fetch(`${FUNCTIONS_URL}/terapeutas`);
+      if (!response.ok) throw new Error('Error al verificar RUT');
       
-    if (error) throw error;
-    return data.length > 0;
+      const data = await response.json();
+      return data.some(terapeuta => terapeuta.rut === rut);
+    } catch (error) {
+      console.error('Error en checkRutExists:', error);
+      throw error;
+    }
   }
 };

@@ -1,60 +1,87 @@
 import { supabase } from '../config/supabase';
 
+const FUNCTIONS_URL = process.env.REACT_APP_SUPABASE_FUNCTIONS_URL;
+
 export const camposApi = {
   // Obtener todos los campos
   getAll: async () => {
-    const { data, error } = await supabase
-      .from('configuracion_campos')
-      .select('*')
-      .order('orden', { ascending: true });
-      
-    if (error) throw error;
-    return data;
+    try {
+      const response = await fetch(`${FUNCTIONS_URL}/campos`);
+      if (!response.ok) throw new Error('Error al obtener campos');
+      return await response.json();
+    } catch (error) {
+      console.error('Error en getAll:', error);
+      throw error;
+    }
   },
 
   // Obtener campos activos
   getActivos: async () => {
-    const { data, error } = await supabase
-      .from('configuracion_campos')
-      .select('*')
-      .eq('activo', true)
-      .order('orden', { ascending: true });
-      
-    if (error) throw error;
-    return data;
+    try {
+      const response = await fetch(`${FUNCTIONS_URL}/campos/activos`);
+      if (!response.ok) throw new Error('Error al obtener campos activos');
+      return await response.json();
+    } catch (error) {
+      console.error('Error en getActivos:', error);
+      throw error;
+    }
   },
 
   // Crear nuevo campo
   create: async (campoData) => {
-    const { data, error } = await supabase
-      .from('configuracion_campos')
-      .insert([campoData])
-      .select();
+    try {
+      const response = await fetch(`${FUNCTIONS_URL}/campos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.auth.getSession()?.access_token || ''}`
+        },
+        body: JSON.stringify(campoData)
+      });
       
-    if (error) throw error;
-    return data[0];
+      if (!response.ok) throw new Error('Error al crear campo');
+      return await response.json();
+    } catch (error) {
+      console.error('Error en create:', error);
+      throw error;
+    }
   },
 
   // Actualizar campo
   update: async (id, campoData) => {
-    const { data, error } = await supabase
-      .from('configuracion_campos')
-      .update(campoData)
-      .eq('id', id)
-      .select();
+    try {
+      const response = await fetch(`${FUNCTIONS_URL}/campos/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.auth.getSession()?.access_token || ''}`
+        },
+        body: JSON.stringify(campoData)
+      });
       
-    if (error) throw error;
-    return data[0];
+      if (!response.ok) throw new Error('Error al actualizar campo');
+      return await response.json();
+    } catch (error) {
+      console.error('Error en update:', error);
+      throw error;
+    }
   },
 
   // Eliminar campo
   delete: async (id) => {
-    const { error } = await supabase
-      .from('configuracion_campos')
-      .delete()
-      .eq('id', id);
+    try {
+      const response = await fetch(`${FUNCTIONS_URL}/campos/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${supabase.auth.getSession()?.access_token || ''}`
+        }
+      });
       
-    if (error) throw error;
-    return { message: "Campo eliminado exitosamente" };
+      if (!response.ok) throw new Error('Error al eliminar campo');
+      return await response.json();
+    } catch (error) {
+      console.error('Error en delete:', error);
+      throw error;
+    }
   },
 };
