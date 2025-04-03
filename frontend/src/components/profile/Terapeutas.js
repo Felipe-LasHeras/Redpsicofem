@@ -43,38 +43,6 @@ function ProfileForm() {
     fetchTerapeutaData();
   }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch("/api/terapeutas", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al guardar los datos");
-      }
-
-      const data = await response.json();
-      alert("Perfil guardado exitosamente");
-      // Opcional: redirigir o limpiar el formulario
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Error al guardar el perfil");
-    }
-  };
-
   return (
     <div className="container my-5">
       <div className="row justify-content-center">
