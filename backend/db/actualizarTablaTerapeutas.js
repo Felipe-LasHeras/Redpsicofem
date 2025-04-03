@@ -18,8 +18,7 @@ const actualizarTablaTerapeutas = async () => {
       ADD COLUMN IF NOT EXISTS cupos_30000_35000 INTEGER DEFAULT 0,
       ADD COLUMN IF NOT EXISTS cupos_25000_29000 INTEGER DEFAULT 0,
       ADD COLUMN IF NOT EXISTS cupos_20000_24000 INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS cupos_15000_19000 INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS perfil_reservo VARCHAR(255);
+      ADD COLUMN IF NOT EXISTS cupos_15000_19000 INTEGER DEFAULT 0;
     `);
     
     // Actualizar los registros existentes para asignar un tipo_terapeuta_nombre 

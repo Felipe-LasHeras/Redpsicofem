@@ -10,7 +10,6 @@ function ProfileForm() {
     lugarAtencion: "",
     valorConsulta: "",
     descripcionPersonal: "",
-    perfilReservo: "",
     tipoTerapeuta: "",
   });
 
@@ -31,7 +30,6 @@ function ProfileForm() {
           lugarAtencion: terapeutaData.lugar_atencion || "",
           valorConsulta: terapeutaData.valor_consulta || "",
           descripcionPersonal: terapeutaData.descripcion || "",
-          perfilReservo: terapeutaData.perfil_rrss || "",
           tipoTerapeuta:
             terapeutaData.tipo_terapeuta === 1 ? "interno" : "externo",
         });
@@ -63,7 +61,6 @@ function ProfileForm() {
                     lugarAtencion: "Lugar de Atención",
                     valorConsulta: "Valor Consulta",
                     descripcionPersonal: "Descripción Personal",
-                    perfilReservo: "Perfil de Reservo",
                     tipoTerapeuta: "Tipo de Terapeuta",
                   };
 
