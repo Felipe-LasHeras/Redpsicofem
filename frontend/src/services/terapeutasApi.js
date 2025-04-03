@@ -1,150 +1,90 @@
-const API_URL = process.env.REACT_APP_API_URL;
+import { supabase } from '../config/supabase';
 
 export const terapeutasApi = {
   getAll: async () => {
-    try {
-      const response = await fetch(`${API_URL}/terapeutas`);
-      if (!response.ok) {
-        throw new Error("Error al obtener terapeutas");
-      }
-      return await response.json();
-    } catch (error) {
-      console.error("Error en getAll:", error);
-      throw error;
-    }
+    const { data, error } = await supabase
+      .from('psicologos')
+      .select('*')
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
+    return data;
   },
 
   getById: async (id) => {
-    try {
-      const response = await fetch(`${API_URL}/terapeutas/${id}`);
-      if (!response.ok) {
-        throw new Error("Error al obtener el terapeuta");
-      }
-      return await response.json();
-    } catch (error) {
-      console.error("Error en getById:", error);
-      throw error;
-    }
+    const { data, error } = await supabase
+      .from('psicologos')
+      .select('*')
+      .eq('id', id)
+      .single();
+      
+    if (error) throw error;
+    return data;
   },
 
-  // Nueva función para obtener terapeutas por tipo
+  // Obtener terapeutas por tipo
   getByTipo: async (tipo) => {
-    try {
-      const response = await fetch(`${API_URL}/terapeutas/tipo/${tipo}`);
-      if (!response.ok) {
-        throw new Error(`Error al obtener terapeutas de tipo ${tipo}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error(`Error en getByTipo (${tipo}):`, error);
-      throw error;
-    }
+    const { data, error } = await supabase
+      .from('psicologos')
+      .select('*')
+      .eq('tipo_terapeuta_nombre', tipo)
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
+    return data;
   },
 
   create: async (terapeutaData) => {
-    try {
-      const response = await fetch(`${API_URL}/terapeutas`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(terapeutaData),
-      });
-
-      const responseData = await response.json();
+    const { data, error } = await supabase
+      .from('psicologos')
+      .insert([terapeutaData])
+      .select();
       
-      if (!response.ok) {
-        // Verificar si es un error de duplicación - Corregido con paréntesis
-        if ((response.status === 500 && responseData.error) && 
-            (responseData.error.includes('duplicada') || 
-             (responseData.details && responseData.details.includes('duplicada')))) {
-          throw new Error(`Ya existe un terapeuta con el RUT ${terapeutaData.rut}`);
-        }
-        
-        throw new Error(responseData.error || responseData.message || "Error al crear terapeuta");
-      }
-
-      return { success: true, data: responseData };
-    } catch (error) {
-      console.error("Error detallado:", error);
-      throw error;
-    }
+    if (error) throw error;
+    return { success: true, data: data[0] };
   },
 
   update: async (id, terapeutaData) => {
-    try {
-      const response = await fetch(`${API_URL}/terapeutas/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(terapeutaData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Error al actualizar terapeuta");
-      }
-      return await response.json();
-    } catch (error) {
-      console.error("Error en update:", error);
-      throw error;
-    }
+    const { data, error } = await supabase
+      .from('psicologos')
+      .update(terapeutaData)
+      .eq('id', id)
+      .select();
+      
+    if (error) throw error;
+    return data[0];
   },
 
   delete: async (id) => {
-    try {
-      const response = await fetch(`${API_URL}/terapeutas/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Error al eliminar terapeuta");
-      }
-      return await response.json();
-    } catch (error) {
-      console.error("Error en delete:", error);
-      throw error;
-    }
+    const { error } = await supabase
+      .from('psicologos')
+      .delete()
+      .eq('id', id);
+      
+    if (error) throw error;
+    return { message: "Terapeuta eliminado exitosamente" };
   },
   
   // Actualizar solo los horarios de un terapeuta
   updateHorarios: async (id, horariosData) => {
-    try {
-      if (!id) {
-        throw new Error("ID de terapeuta no válido");
-      }
+    const { data, error } = await supabase
+      .from('psicologos')
+      .update(horariosData)
+      .eq('id', id)
+      .select();
       
-      const response = await fetch(`${API_URL}/terapeutas/${id}/horarios`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(horariosData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Error al actualizar horarios");
-      }
-      return await response.json();
-    } catch (error) {
-      console.error("Error en updateHorarios:", error);
-      throw error;
-    }
+    if (error) throw error;
+    return data[0];
   },
   
-  // Función para verificar si un RUT ya existe
+  // Verificar si un RUT ya existe
   checkRutExists: async (rut) => {
-    try {
-      const allTerapeutas = await terapeutasApi.getAll();
-      return allTerapeutas.some(terapeuta => terapeuta.rut === rut);
-    } catch (error) {
-      console.error("Error verificando RUT existente:", error);
-      return false; // Asumimos que no existe en caso de error
-    }
+    const { data, error } = await supabase
+      .from('psicologos')
+      .select('id')
+      .eq('rut', rut);
+      
+    if (error) throw error;
+    return data.length > 0;
   }
 };

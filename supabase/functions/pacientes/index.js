@@ -1,6 +1,6 @@
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import { corsHeaders, handleCors } from '../_shared/cors.js';
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { corsHeaders, handleCors } from "../_shared/cors.js";
 
 serve(async (req) => {
   // Manejo de CORS
@@ -9,104 +9,104 @@ serve(async (req) => {
 
   // Crear cliente Supabase
   const supabase = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-    { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+    { global: { headers: { Authorization: req.headers.get("Authorization") || "" } } }
   );
 
   const url = new URL(req.url);
-  const path = url.pathname.split('/').filter(Boolean);
+  const path = url.pathname.split("/").filter(Boolean);
   const id = path.length > 1 ? path[1] : null;
   
   try {
     // GET - Obtener todos los pacientes o un paciente específico
-    if (req.method === 'GET') {
+    if (req.method === "GET") {
       if (id) {
         // Obtener un paciente por ID
         const { data, error } = await supabase
-          .from('perfiles_pacientes')
-          .select('*')
-          .eq('id', id)
+          .from("perfiles_pacientes")
+          .select("*")
+          .eq("id", id)
           .single();
           
         if (error) throw error;
         return new Response(JSON.stringify(data), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200
         });
       } else {
         // Obtener todos los pacientes
         const { data, error } = await supabase
-          .from('perfiles_pacientes')
-          .select('*')
-          .order('created_at', { ascending: false });
+          .from("perfiles_pacientes")
+          .select("*")
+          .order("created_at", { ascending: false });
           
         if (error) throw error;
         return new Response(JSON.stringify(data), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200
         });
       }
     }
     
     // POST - Crear un nuevo paciente
-    if (req.method === 'POST') {
+    if (req.method === "POST") {
       const pacienteData = await req.json();
       
       const { data, error } = await supabase
-        .from('perfiles_pacientes')
+        .from("perfiles_pacientes")
         .insert([pacienteData])
         .select();
         
       if (error) throw error;
       return new Response(JSON.stringify(data[0]), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 201
       });
     }
     
     // PUT - Actualizar un paciente existente
-    if (req.method === 'PUT' && id) {
+    if (req.method === "PUT" && id) {
       const pacienteData = await req.json();
       
       const { data, error } = await supabase
-        .from('perfiles_pacientes')
+        .from("perfiles_pacientes")
         .update(pacienteData)
-        .eq('id', id)
+        .eq("id", id)
         .select();
         
       if (error) throw error;
       return new Response(JSON.stringify(data[0]), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200
       });
     }
     
     // DELETE - Eliminar un paciente
-    if (req.method === 'DELETE' && id) {
+    if (req.method === "DELETE" && id) {
       const { data, error } = await supabase
-        .from('perfiles_pacientes')
+        .from("perfiles_pacientes")
         .delete()
-        .eq('id', id)
+        .eq("id", id)
         .select();
         
       if (error) throw error;
-      return new Response(JSON.stringify({ message: 'Paciente eliminado exitosamente' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      return new Response(JSON.stringify({ message: "Paciente eliminado exitosamente" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200
       });
     }
     
     // Si no coincide con ninguna ruta
-    return new Response(JSON.stringify({ error: 'Ruta no encontrada' }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    return new Response(JSON.stringify({ error: "Ruta no encontrada" }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 404
     });
     
   } catch (error) {
-    console.error('Error:', error.message);
+    console.error("Error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500
     });
   }
