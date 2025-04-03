@@ -1,8 +1,45 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-import { corsHeaders, handleCors } from "../_shared/cors.js";
+import { corsHeaders, handleCors } from "../_shared/cors.ts";
 
-serve(async (req) => {
+interface TerapeutaData {
+  nombre?: string;
+  apellido?: string;
+  tipo_terapeuta?: boolean;
+  tipo_terapeuta_nombre?: string;
+  especialidad?: string;
+  region?: string;
+  comuna?: string;
+  lugar_atencion?: string;
+  valor_consulta?: number;
+  descripcion?: string;
+  rut?: string;
+  edad_atencion?: string;
+  tipo_atencion?: string;
+  horarios?: string;
+  direccion_atencion?: string;
+  atiende_ninos?: boolean;
+  atiende_adolescentes?: boolean;
+  atiende_adultos?: boolean;
+  atiende_hombre_cis?: boolean;
+  atiende_presencial?: boolean;
+  atiende_online?: boolean;
+  arancel_diferencial?: boolean;
+  valor_general_atencion?: number;
+  cupos_30000_35000?: number;
+  cupos_25000_29000?: number;
+  cupos_20000_24000?: number;
+  cupos_15000_19000?: number;
+  horarios_online?: string | Record<string, any>;
+  horarios_presencial?: string | Record<string, any>;
+}
+
+interface HorariosData {
+  horarios_online?: string | Record<string, any>;
+  horarios_presencial?: string | Record<string, any>;
+}
+
+serve(async (req: Request) => {
   // Manejo de CORS
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
@@ -70,7 +107,7 @@ serve(async (req) => {
     
     // POST - Crear un nuevo terapeuta
     if (req.method === "POST") {
-      const terapeutaData = await req.json();
+      const terapeutaData: TerapeutaData = await req.json();
       
       const { data, error } = await supabase
         .from("psicologos")
@@ -86,7 +123,7 @@ serve(async (req) => {
     
     // PUT - Actualizar un terapeuta existente
     if (req.method === "PUT" && id) {
-      const terapeutaData = await req.json();
+      const terapeutaData: TerapeutaData = await req.json();
       
       const { data, error } = await supabase
         .from("psicologos")
@@ -103,7 +140,7 @@ serve(async (req) => {
     
     // PATCH - Actualizar solo los horarios de un terapeuta
     if (req.method === "PATCH" && id && path.length > 2 && path[2] === "horarios") {
-      const horariosData = await req.json();
+      const horariosData: HorariosData = await req.json();
       
       const { data, error } = await supabase
         .from("psicologos")
@@ -139,7 +176,7 @@ serve(async (req) => {
       status: 404
     });
     
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

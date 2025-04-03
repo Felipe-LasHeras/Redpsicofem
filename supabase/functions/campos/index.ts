@@ -1,8 +1,19 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-import { corsHeaders, handleCors } from "../_shared/cors.js";
+import { corsHeaders, handleCors } from "../_shared/cors.ts";
 
-serve(async (req) => {
+interface CampoData {
+  nombre_campo: string;
+  etiqueta: string;
+  tipo: string;
+  opciones?: any[] | null;
+  requerido?: boolean;
+  activo?: boolean;
+  orden: number;
+  categoria?: string;
+}
+
+serve(async (req: Request) => {
   // Manejo de CORS
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
@@ -51,7 +62,7 @@ serve(async (req) => {
     
     // POST - Crear un nuevo campo
     if (req.method === "POST") {
-      const campoData = await req.json();
+      const campoData: CampoData = await req.json();
       
       const { data, error } = await supabase
         .from("configuracion_campos")
@@ -67,7 +78,7 @@ serve(async (req) => {
     
     // PUT - Actualizar un campo existente
     if (req.method === "PUT" && id) {
-      const campoData = await req.json();
+      const campoData: CampoData = await req.json();
       
       const { data, error } = await supabase
         .from("configuracion_campos")
@@ -103,7 +114,7 @@ serve(async (req) => {
       status: 404
     });
     
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

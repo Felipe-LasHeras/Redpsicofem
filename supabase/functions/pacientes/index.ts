@@ -1,8 +1,34 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-import { corsHeaders, handleCors } from "../_shared/cors.js";
+import { corsHeaders, handleCors } from "../_shared/cors.ts";
 
-serve(async (req) => {
+interface PacienteData {
+  email?: string;
+  nombre?: string;
+  apellido?: string;
+  rut?: string;
+  edad?: number;
+  region?: string;
+  comuna?: string;
+  ciudad?: string;
+  direccion?: string;
+  telefono?: string;
+  nombre_contacto_emergencia?: string;
+  telefono_contacto_emergencia?: string;
+  motivo_consulta?: string;
+  diagnostico?: string;
+  sintomas?: string;
+  horarios?: string;
+  arancel?: string;
+  prevision?: string;
+  modalidad?: string;
+  psicologo_varon?: boolean;
+  practicante?: boolean;
+  pregunta?: string;
+  campos_dinamicos?: Record<string, any>;
+}
+
+serve(async (req: Request) => {
   // Manejo de CORS
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
@@ -51,7 +77,7 @@ serve(async (req) => {
     
     // POST - Crear un nuevo paciente
     if (req.method === "POST") {
-      const pacienteData = await req.json();
+      const pacienteData: PacienteData = await req.json();
       
       const { data, error } = await supabase
         .from("perfiles_pacientes")
@@ -67,7 +93,7 @@ serve(async (req) => {
     
     // PUT - Actualizar un paciente existente
     if (req.method === "PUT" && id) {
-      const pacienteData = await req.json();
+      const pacienteData: PacienteData = await req.json();
       
       const { data, error } = await supabase
         .from("perfiles_pacientes")
@@ -103,7 +129,7 @@ serve(async (req) => {
       status: 404
     });
     
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
