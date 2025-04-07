@@ -46,8 +46,8 @@ serve(async (req: Request) => {
 
   // Crear cliente Supabase
   const supabase = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+    Deno.env.get("APP_API_URL") ?? "",
+    Deno.env.get("APP_ANON_KEY") ?? "",
     { global: { headers: { Authorization: req.headers.get("Authorization") || "" } } }
   );
 
@@ -109,6 +109,29 @@ serve(async (req: Request) => {
     if (req.method === "POST") {
       const terapeutaData: TerapeutaData = await req.json();
       
+      // Validación básica
+      if (!terapeutaData.nombre || !terapeutaData.apellido || !terapeutaData.rut) {
+        return new Response(JSON.stringify({ error: "Nombre, apellido y RUT son requeridos" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400
+        });
+      }
+      
+      // Verificar si el RUT ya existe
+      const { data: rutCheck, error: rutError } = await supabase
+        .from("psicologos")
+        .select("id")
+        .eq("rut", terapeutaData.rut);
+        
+      if (rutError) throw rutError;
+      
+      if (rutCheck && rutCheck.length > 0) {
+        return new Response(JSON.stringify({ error: "Ya existe un terapeuta con el mismo RUT" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 409 // Conflict
+        });
+      }
+      
       const { data, error } = await supabase
         .from("psicologos")
         .insert([terapeutaData])
@@ -125,6 +148,24 @@ serve(async (req: Request) => {
     if (req.method === "PUT" && id) {
       const terapeutaData: TerapeutaData = await req.json();
       
+      // Si está actualizando el RUT, verificar que no exista otro con el mismo
+      if (terapeutaData.rut) {
+        const { data: rutCheck, error: rutError } = await supabase
+          .from("psicologos")
+          .select("id")
+          .eq("rut", terapeutaData.rut)
+          .neq("id", id);
+          
+        if (rutError) throw rutError;
+        
+        if (rutCheck && rutCheck.length > 0) {
+          return new Response(JSON.stringify({ error: "Ya existe otro terapeuta con el mismo RUT" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 409 // Conflict
+          });
+        }
+      }
+      
       const { data, error } = await supabase
         .from("psicologos")
         .update(terapeutaData)
@@ -132,6 +173,14 @@ serve(async (req: Request) => {
         .select();
         
       if (error) throw error;
+      
+      if (!data || data.length === 0) {
+        return new Response(JSON.stringify({ error: "Terapeuta no encontrado" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404
+        });
+      }
+      
       return new Response(JSON.stringify(data[0]), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200
@@ -141,6 +190,21 @@ serve(async (req: Request) => {
     // PATCH - Actualizar solo los horarios de un terapeuta
     if (req.method === "PATCH" && id && path.length > 2 && path[2] === "horarios") {
       const horariosData: HorariosData = await req.json();
+      
+      // Verificar que el terapeuta existe
+      const { data: terapeutaExiste, error: checkError } = await supabase
+        .from("psicologos")
+        .select("id")
+        .eq("id", id);
+        
+      if (checkError) throw checkError;
+      
+      if (!terapeutaExiste || terapeutaExiste.length === 0) {
+        return new Response(JSON.stringify({ error: "Terapeuta no encontrado" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404
+        });
+      }
       
       const { data, error } = await supabase
         .from("psicologos")
@@ -164,6 +228,14 @@ serve(async (req: Request) => {
         .select();
         
       if (error) throw error;
+      
+      if (!data || data.length === 0) {
+        return new Response(JSON.stringify({ error: "Terapeuta no encontrado" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404
+        });
+      }
+      
       return new Response(JSON.stringify({ message: "Terapeuta eliminado exitosamente" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200

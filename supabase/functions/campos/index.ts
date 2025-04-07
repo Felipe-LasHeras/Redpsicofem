@@ -20,8 +20,8 @@ serve(async (req: Request) => {
 
   // Crear cliente Supabase
   const supabase = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+    Deno.env.get("APP_API_URL") ?? "",
+    Deno.env.get("APP_ANON_KEY") ?? "",
     { global: { headers: { Authorization: req.headers.get("Authorization") || "" } } }
   );
 
@@ -64,6 +64,33 @@ serve(async (req: Request) => {
     if (req.method === "POST") {
       const campoData: CampoData = await req.json();
       
+      // Validación básica
+      if (!campoData.nombre_campo || !campoData.etiqueta || !campoData.tipo) {
+        return new Response(JSON.stringify({ 
+          error: "Nombre del campo, etiqueta y tipo son requeridos" 
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400
+        });
+      }
+      
+      // Verificar que el nombre del campo sea único
+      const { data: nombreCheck, error: nombreError } = await supabase
+        .from("configuracion_campos")
+        .select("id")
+        .eq("nombre_campo", campoData.nombre_campo);
+        
+      if (nombreError) throw nombreError;
+      
+      if (nombreCheck && nombreCheck.length > 0) {
+        return new Response(JSON.stringify({ 
+          error: "Ya existe un campo con el mismo nombre interno" 
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 409 // Conflict
+        });
+      }
+      
       const { data, error } = await supabase
         .from("configuracion_campos")
         .insert([campoData])
@@ -80,6 +107,26 @@ serve(async (req: Request) => {
     if (req.method === "PUT" && id) {
       const campoData: CampoData = await req.json();
       
+      // Si está actualizando el nombre, verificar que sea único
+      if (campoData.nombre_campo) {
+        const { data: nombreCheck, error: nombreError } = await supabase
+          .from("configuracion_campos")
+          .select("id")
+          .eq("nombre_campo", campoData.nombre_campo)
+          .neq("id", id);
+          
+        if (nombreError) throw nombreError;
+        
+        if (nombreCheck && nombreCheck.length > 0) {
+          return new Response(JSON.stringify({ 
+            error: "Ya existe otro campo con el mismo nombre interno" 
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 409 // Conflict
+          });
+        }
+      }
+      
       const { data, error } = await supabase
         .from("configuracion_campos")
         .update(campoData)
@@ -87,6 +134,14 @@ serve(async (req: Request) => {
         .select();
         
       if (error) throw error;
+      
+      if (!data || data.length === 0) {
+        return new Response(JSON.stringify({ error: "Campo no encontrado" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404
+        });
+      }
+      
       return new Response(JSON.stringify(data[0]), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200
@@ -102,6 +157,14 @@ serve(async (req: Request) => {
         .select();
         
       if (error) throw error;
+      
+      if (!data || data.length === 0) {
+        return new Response(JSON.stringify({ error: "Campo no encontrado" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404
+        });
+      }
+      
       return new Response(JSON.stringify({ message: "Campo eliminado exitosamente" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200

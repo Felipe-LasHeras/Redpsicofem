@@ -5,17 +5,24 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "proxy": "nodemon proxy.js",
+    "test:api": "node scripts/test-api.js",
+    "dev:proxy": "nodemon proxy.js",
+    "export-schema": "node scripts/migrate-schema.js",
+    "export-data": "node scripts/migrate-data.js",
+    "deploy-functions": "supabase functions deploy pacientes && supabase functions deploy terapeutas && supabase functions deploy campos"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.8.4",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-validator": "^7.2.1",
+    "http-proxy-middleware": "^2.0.7",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.10.0",
     "pg": "^8.13.2",

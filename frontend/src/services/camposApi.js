@@ -1,13 +1,11 @@
-import { supabase } from '../config/supabase';
-
-const FUNCTIONS_URL = process.env.REACT_APP_SUPABASE_FUNCTIONS_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 const ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
 export const camposApi = {
   // Obtener todos los campos
   getAll: async () => {
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/campos`, {
+      const response = await fetch(`${API_URL}/campos`, {
         headers: {
           'apikey': ANON_KEY,
           'Authorization': `Bearer ${ANON_KEY}`
@@ -24,7 +22,12 @@ export const camposApi = {
   // Obtener campos activos
   getActivos: async () => {
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/campos/activos`);
+      const response = await fetch(`${API_URL}/campos/activos`, {
+        headers: {
+          'apikey': ANON_KEY,
+          'Authorization': `Bearer ${ANON_KEY}`
+        }
+      });
       if (!response.ok) throw new Error('Error al obtener campos activos');
       return await response.json();
     } catch (error) {
@@ -36,11 +39,12 @@ export const camposApi = {
   // Crear nuevo campo
   create: async (campoData) => {
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/campos`, {
+      const response = await fetch(`${API_URL}/campos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.auth.getSession()?.access_token || ''}`
+          'apikey': ANON_KEY,
+          'Authorization': `Bearer ${ANON_KEY}`
         },
         body: JSON.stringify(campoData)
       });
@@ -56,11 +60,12 @@ export const camposApi = {
   // Actualizar campo
   update: async (id, campoData) => {
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/campos/${id}`, {
+      const response = await fetch(`${API_URL}/campos/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.auth.getSession()?.access_token || ''}`
+          'apikey': ANON_KEY,
+          'Authorization': `Bearer ${ANON_KEY}`
         },
         body: JSON.stringify(campoData)
       });
@@ -76,10 +81,11 @@ export const camposApi = {
   // Eliminar campo
   delete: async (id) => {
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/campos/${id}`, {
+      const response = await fetch(`${API_URL}/campos/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${supabase.auth.getSession()?.access_token || ''}`
+          'apikey': ANON_KEY,
+          'Authorization': `Bearer ${ANON_KEY}`
         }
       });
       

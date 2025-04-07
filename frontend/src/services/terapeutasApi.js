@@ -1,12 +1,10 @@
-import { supabase } from '../config/supabase';
-
-const FUNCTIONS_URL = process.env.REACT_APP_SUPABASE_FUNCTIONS_URL;
+const API_URL = process.env.REACT_APP_API_URL;
 const ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
 export const terapeutasApi = {
   getAll: async () => {
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/terapeutas`, {
+      const response = await fetch(`${API_URL}/terapeutas`, {
         headers: {
           'apikey': ANON_KEY,
           'Authorization': `Bearer ${ANON_KEY}`
@@ -22,7 +20,12 @@ export const terapeutasApi = {
 
   getById: async (id) => {
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/terapeutas/${id}`);
+      const response = await fetch(`${API_URL}/terapeutas/${id}`, {
+        headers: {
+          'apikey': ANON_KEY,
+          'Authorization': `Bearer ${ANON_KEY}`
+        }
+      });
       if (!response.ok) throw new Error('Error al obtener terapeuta');
       return await response.json();
     } catch (error) {
@@ -34,7 +37,12 @@ export const terapeutasApi = {
   // Obtener terapeutas por tipo
   getByTipo: async (tipo) => {
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/terapeutas/tipo/${tipo}`);
+      const response = await fetch(`${API_URL}/terapeutas/tipo/${tipo}`, {
+        headers: {
+          'apikey': ANON_KEY,
+          'Authorization': `Bearer ${ANON_KEY}`
+        }
+      });
       if (!response.ok) throw new Error(`Error al obtener terapeutas de tipo ${tipo}`);
       return await response.json();
     } catch (error) {
@@ -45,11 +53,12 @@ export const terapeutasApi = {
 
   create: async (terapeutaData) => {
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/terapeutas`, {
+      const response = await fetch(`${API_URL}/terapeutas`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.auth.getSession()?.access_token || ''}`
+          'apikey': ANON_KEY,
+          'Authorization': `Bearer ${ANON_KEY}`
         },
         body: JSON.stringify(terapeutaData)
       });
@@ -65,11 +74,12 @@ export const terapeutasApi = {
 
   update: async (id, terapeutaData) => {
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/terapeutas/${id}`, {
+      const response = await fetch(`${API_URL}/terapeutas/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.auth.getSession()?.access_token || ''}`
+          'apikey': ANON_KEY,
+          'Authorization': `Bearer ${ANON_KEY}`
         },
         body: JSON.stringify(terapeutaData)
       });
@@ -84,10 +94,11 @@ export const terapeutasApi = {
 
   delete: async (id) => {
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/terapeutas/${id}`, {
+      const response = await fetch(`${API_URL}/terapeutas/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${supabase.auth.getSession()?.access_token || ''}`
+          'apikey': ANON_KEY,
+          'Authorization': `Bearer ${ANON_KEY}`
         }
       });
       
@@ -102,11 +113,12 @@ export const terapeutasApi = {
   // Actualizar solo los horarios de un terapeuta
   updateHorarios: async (id, horariosData) => {
     try {
-      const response = await fetch(`${FUNCTIONS_URL}/terapeutas/${id}/horarios`, {
+      const response = await fetch(`${API_URL}/terapeutas/${id}/horarios`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.auth.getSession()?.access_token || ''}`
+          'apikey': ANON_KEY,
+          'Authorization': `Bearer ${ANON_KEY}`
         },
         body: JSON.stringify(horariosData)
       });
@@ -122,12 +134,8 @@ export const terapeutasApi = {
   // Verificar si un RUT ya existe
   checkRutExists: async (rut) => {
     try {
-      // Esta implementación es diferente, ya que Supabase Functions no tiene un endpoint específico
-      // así que obtenemos todos los terapeutas y filtramos por RUT
-      const response = await fetch(`${FUNCTIONS_URL}/terapeutas`);
-      if (!response.ok) throw new Error('Error al verificar RUT');
-      
-      const data = await response.json();
+      // Obtenemos todos los terapeutas y filtramos por RUT
+      const data = await this.getAll();
       return data.some(terapeuta => terapeuta.rut === rut);
     } catch (error) {
       console.error('Error en checkRutExists:', error);

@@ -35,8 +35,8 @@ serve(async (req: Request) => {
 
   // Crear cliente Supabase
   const supabase = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+    Deno.env.get("APP_API_URL") ?? "",
+    Deno.env.get("APP_ANON_KEY") ?? "",
     { global: { headers: { Authorization: req.headers.get("Authorization") || "" } } }
   );
 
@@ -79,6 +79,14 @@ serve(async (req: Request) => {
     if (req.method === "POST") {
       const pacienteData: PacienteData = await req.json();
       
+      // Validación básica
+      if (!pacienteData.nombre || !pacienteData.apellido) {
+        return new Response(JSON.stringify({ error: "Nombre y apellido son requeridos" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400
+        });
+      }
+      
       const { data, error } = await supabase
         .from("perfiles_pacientes")
         .insert([pacienteData])
@@ -102,6 +110,14 @@ serve(async (req: Request) => {
         .select();
         
       if (error) throw error;
+      
+      if (!data || data.length === 0) {
+        return new Response(JSON.stringify({ error: "Paciente no encontrado" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404
+        });
+      }
+      
       return new Response(JSON.stringify(data[0]), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200
@@ -117,6 +133,14 @@ serve(async (req: Request) => {
         .select();
         
       if (error) throw error;
+      
+      if (!data || data.length === 0) {
+        return new Response(JSON.stringify({ error: "Paciente no encontrado" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404
+        });
+      }
+      
       return new Response(JSON.stringify({ message: "Paciente eliminado exitosamente" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200

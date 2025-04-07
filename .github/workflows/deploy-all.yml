@@ -1,0 +1,44 @@
+name: Deploy Frontend and Backend
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy-supabase-functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Deploy Supabase Functions
+        run: |
+          supabase login --token ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          supabase link --project-ref tqqparrybsicbansodrc
+          supabase functions deploy pacientes
+          supabase functions deploy terapeutas
+          supabase functions deploy campos
+
+  deploy-frontend:
+    needs: deploy-supabase-functions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: cd frontend && npm ci
+      - name: Build
+        run: cd frontend && npm run build
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_REDPSICOFEM_2C340 }}
+          channelId: live
+          projectId: redpsicofem-2c340
+          entryPoint: ./frontend
