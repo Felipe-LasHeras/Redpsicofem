@@ -1,24 +1,5 @@
-const express = require('express');
-const { createProxyMiddleware } = require('http-proxy-middleware');
-const cors = require('cors');
-require('dotenv').config();
-
-const app = express();
-
-// Configuración de CORS
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'apikey']
-}));
-
-// Middleware para logging
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
-  next();
-});
-
-// Proxy para Supabase Functions
+// En backend/proxy.js
+// Middleware para proxying a Supabase Functions
 app.use('/api', createProxyMiddleware({
   target: process.env.SUPABASE_FUNCTIONS_URL,
   changeOrigin: true,
@@ -39,13 +20,3 @@ app.use('/api', createProxyMiddleware({
     res.status(500).json({ error: 'Proxy error', message: err.message });
   }
 }));
-
-// Ruta para verificar el estado del proxy
-app.get('/status', (req, res) => {
-  res.json({ status: 'Online', mode: 'Proxy' });
-});
-
-const PORT = process.env.PORT || 3002;
-app.listen(PORT, () => {
-  console.log(`API Proxy server running on port ${PORT}`);
-});
