@@ -18,12 +18,17 @@ serve(async (req: Request) => {
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
 
-  // Crear cliente Supabase
-  const supabase = createClient(
-    Deno.env.get("APP_API_URL") ?? "",
-    Deno.env.get("APP_ANON_KEY") ?? "",
-    { global: { headers: { Authorization: req.headers.get("Authorization") || "" } } }
-  );
+  // URL y parámetros de la API de Supabase
+  const apiUrl = Deno.env.get("APP_API_URL") ?? "";
+  const serviceRoleKey = Deno.env.get("APP_SERVICE_ROLE_KEY") ?? "";
+
+  // Cliente administrativo con permisos elevados
+  const supabaseAdmin = createClient(apiUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
 
   const url = new URL(req.url);
   const path = url.pathname.split("/").filter(Boolean);
@@ -34,7 +39,7 @@ serve(async (req: Request) => {
     if (req.method === "GET") {
       if (path.length > 1 && path[1] === "activos") {
         // Obtener solo campos activos
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
           .from("configuracion_campos")
           .select("*")
           .eq("activo", true)
@@ -47,7 +52,7 @@ serve(async (req: Request) => {
         });
       } else {
         // Obtener todos los campos
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
           .from("configuracion_campos")
           .select("*")
           .order("orden", { ascending: true });
@@ -75,7 +80,7 @@ serve(async (req: Request) => {
       }
       
       // Verificar que el nombre del campo sea único
-      const { data: nombreCheck, error: nombreError } = await supabase
+      const { data: nombreCheck, error: nombreError } = await supabaseAdmin
         .from("configuracion_campos")
         .select("id")
         .eq("nombre_campo", campoData.nombre_campo);
@@ -91,7 +96,7 @@ serve(async (req: Request) => {
         });
       }
       
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("configuracion_campos")
         .insert([campoData])
         .select();
@@ -109,7 +114,7 @@ serve(async (req: Request) => {
       
       // Si está actualizando el nombre, verificar que sea único
       if (campoData.nombre_campo) {
-        const { data: nombreCheck, error: nombreError } = await supabase
+        const { data: nombreCheck, error: nombreError } = await supabaseAdmin
           .from("configuracion_campos")
           .select("id")
           .eq("nombre_campo", campoData.nombre_campo)
@@ -127,7 +132,7 @@ serve(async (req: Request) => {
         }
       }
       
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("configuracion_campos")
         .update(campoData)
         .eq("id", id)
@@ -150,7 +155,7 @@ serve(async (req: Request) => {
     
     // DELETE - Eliminar un campo
     if (req.method === "DELETE" && id) {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("configuracion_campos")
         .delete()
         .eq("id", id)

@@ -33,12 +33,18 @@ serve(async (req: Request) => {
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
 
-  // Crear cliente Supabase
-  const supabase = createClient(
-    Deno.env.get("APP_API_URL") ?? "",
-    Deno.env.get("APP_ANON_KEY") ?? "",
-    { global: { headers: { Authorization: req.headers.get("Authorization") || "" } } }
-  );
+  // URL y parámetros de la API de Supabase
+  const apiUrl = Deno.env.get("APP_API_URL") ?? "";
+  const anonKey = Deno.env.get("APP_ANON_KEY") ?? "";
+  const serviceRoleKey = Deno.env.get("APP_SERVICE_ROLE_KEY") ?? "";
+
+  // Cliente administrativo con permisos elevados para operaciones de escritura
+  const supabaseAdmin = createClient(apiUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
 
   const url = new URL(req.url);
   const path = url.pathname.split("/").filter(Boolean);
@@ -49,7 +55,7 @@ serve(async (req: Request) => {
     if (req.method === "GET") {
       if (id) {
         // Obtener un paciente por ID
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
           .from("perfiles_pacientes")
           .select("*")
           .eq("id", id)
@@ -62,7 +68,7 @@ serve(async (req: Request) => {
         });
       } else {
         // Obtener todos los pacientes
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
           .from("perfiles_pacientes")
           .select("*")
           .order("created_at", { ascending: false });
@@ -87,12 +93,17 @@ serve(async (req: Request) => {
         });
       }
       
-      const { data, error } = await supabase
+      // Usamos el cliente administrativo para la inserción
+      const { data, error } = await supabaseAdmin
         .from("perfiles_pacientes")
         .insert([pacienteData])
         .select();
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error en inserción:", error);
+        throw error;
+      }
+      
       return new Response(JSON.stringify(data[0]), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 201
@@ -103,7 +114,7 @@ serve(async (req: Request) => {
     if (req.method === "PUT" && id) {
       const pacienteData: PacienteData = await req.json();
       
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("perfiles_pacientes")
         .update(pacienteData)
         .eq("id", id)
@@ -126,7 +137,7 @@ serve(async (req: Request) => {
     
     // DELETE - Eliminar un paciente
     if (req.method === "DELETE" && id) {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("perfiles_pacientes")
         .delete()
         .eq("id", id)

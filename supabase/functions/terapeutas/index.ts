@@ -44,12 +44,17 @@ serve(async (req: Request) => {
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
 
-  // Crear cliente Supabase
-  const supabase = createClient(
-    Deno.env.get("APP_API_URL") ?? "",
-    Deno.env.get("APP_ANON_KEY") ?? "",
-    { global: { headers: { Authorization: req.headers.get("Authorization") || "" } } }
-  );
+  // URL y parámetros de la API de Supabase
+  const apiUrl = Deno.env.get("APP_API_URL") ?? "";
+  const serviceRoleKey = Deno.env.get("APP_SERVICE_ROLE_KEY") ?? "";
+
+  // Cliente administrativo con permisos elevados
+  const supabaseAdmin = createClient(apiUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
 
   const url = new URL(req.url);
   const path = url.pathname.split("/").filter(Boolean);
@@ -62,7 +67,7 @@ serve(async (req: Request) => {
       if (path.length > 1 && path[1] === "tipo" && path.length > 2) {
         const tipo = path[2];
         
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
           .from("psicologos")
           .select("*")
           .eq("tipo_terapeuta_nombre", tipo)
@@ -77,7 +82,7 @@ serve(async (req: Request) => {
       
       // Obtener un terapeuta por ID
       if (id && path[1] !== "tipo") {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
           .from("psicologos")
           .select("*")
           .eq("id", id)
@@ -92,7 +97,7 @@ serve(async (req: Request) => {
       
       // Obtener todos los terapeutas
       if (!id || path[1] === "todos") {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
           .from("psicologos")
           .select("*")
           .order("created_at", { ascending: false });
@@ -118,7 +123,7 @@ serve(async (req: Request) => {
       }
       
       // Verificar si el RUT ya existe
-      const { data: rutCheck, error: rutError } = await supabase
+      const { data: rutCheck, error: rutError } = await supabaseAdmin
         .from("psicologos")
         .select("id")
         .eq("rut", terapeutaData.rut);
@@ -132,7 +137,7 @@ serve(async (req: Request) => {
         });
       }
       
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("psicologos")
         .insert([terapeutaData])
         .select();
@@ -150,7 +155,7 @@ serve(async (req: Request) => {
       
       // Si está actualizando el RUT, verificar que no exista otro con el mismo
       if (terapeutaData.rut) {
-        const { data: rutCheck, error: rutError } = await supabase
+        const { data: rutCheck, error: rutError } = await supabaseAdmin
           .from("psicologos")
           .select("id")
           .eq("rut", terapeutaData.rut)
@@ -166,7 +171,7 @@ serve(async (req: Request) => {
         }
       }
       
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("psicologos")
         .update(terapeutaData)
         .eq("id", id)
@@ -192,7 +197,7 @@ serve(async (req: Request) => {
       const horariosData: HorariosData = await req.json();
       
       // Verificar que el terapeuta existe
-      const { data: terapeutaExiste, error: checkError } = await supabase
+      const { data: terapeutaExiste, error: checkError } = await supabaseAdmin
         .from("psicologos")
         .select("id")
         .eq("id", id);
@@ -206,7 +211,7 @@ serve(async (req: Request) => {
         });
       }
       
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("psicologos")
         .update(horariosData)
         .eq("id", id)
@@ -221,7 +226,7 @@ serve(async (req: Request) => {
     
     // DELETE - Eliminar un terapeuta
     if (req.method === "DELETE" && id) {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("psicologos")
         .delete()
         .eq("id", id)
