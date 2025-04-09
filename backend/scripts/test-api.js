@@ -32,7 +32,7 @@ async function testEndpoints() {
       
       console.log(`✅ ${endpoint.name}: ${response.status} ${response.statusText}`);
       console.log(`   Total elementos: ${Array.isArray(response.data) ? response.data.length : '1 (objeto)'}`);
-      console.log(`   Muestra de respuesta: ${JSON.stringify(response.data.slice(0, 1) || response.data).substring(0, 100)}...`);
+      console.log(`   Muestra de respuesta: ${JSON.stringify(response.data.slice ? response.data.slice(0, 1) : response.data).substring(0, 100)}...`);
     } catch (error) {
       console.error(`❌ ${endpoint.name}: ERROR`);
       
