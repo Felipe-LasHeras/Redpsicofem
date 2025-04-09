@@ -7,7 +7,10 @@ export const corsHeaders: Record<string, string> = {
 export function handleCors(req: Request): Response | undefined {
   // Manejo de preflight OPTIONS
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { 
+      headers: corsHeaders,
+      status: 200
+    });
   }
   return undefined;
 }

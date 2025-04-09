@@ -1,6 +1,11 @@
 const API_URL = process.env.REACT_APP_API_URL;
 const ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
+
+
+console.log("API_URL:", process.env.REACT_APP_API_URL);
+console.log("ANON_KEY:", process.env.REACT_APP_SUPABASE_ANON_KEY ? process.env.REACT_APP_SUPABASE_ANON_KEY.substring(0, 5) + "..." : "no definido");
+
 export const pacientesApi = {
   // Obtener todos los pacientes
   getAll: async () => {
