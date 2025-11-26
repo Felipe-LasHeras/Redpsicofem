@@ -90,8 +90,9 @@ export const terapeutasApi = {
     }
     
     try {
-      console.log(`Solicitando GET a ${API_URL}/terapeutas/tipo/${tipo}`);
-      const response = await fetch(`${API_URL}/terapeutas/tipo/${tipo}`, {
+      const tipoEncoded = encodeURIComponent(tipo);
+      console.log(`Solicitando GET a ${API_URL}/terapeutas/tipo/${tipoEncoded}`);
+      const response = await fetch(`${API_URL}/terapeutas/tipo/${tipoEncoded}`, {
         headers: {
           'apikey': ANON_KEY,
           'Authorization': `Bearer ${ANON_KEY}`

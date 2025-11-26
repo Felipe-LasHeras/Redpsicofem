@@ -111,6 +111,38 @@ function Dashboard() {
     horarios_presencial: "Horarios Presenciales"
   };
   
+  // NUEVO: Función helper para determinar color del header
+  const determinarColorHeader = (data) => {
+    if (activeTab === "pacientes") {
+      return '#FF8C42'; // Naranja para pacientes
+    }
+    if (activeTab === "terapeutas") {
+      if (data.tipo_terapeuta_nombre === "Redpsicofem") {
+        return '#453376'; // Morado para Redpsicofem
+      }
+      if (data.tipo_terapeuta_nombre === "Red derivacion") {
+        return '#2D9B9B'; // Verde para Red derivación
+      }
+    }
+    return '#0d6efd'; // Azul por defecto
+  };
+
+  // NUEVO: Función helper para determinar color del botón "Ver más"
+  const determinarColorBotonVerMas = (data) => {
+    if (activeTab === "pacientes") {
+      return '#D97635'; // Naranja oscuro para pacientes
+    }
+    if (activeTab === "terapeutas") {
+      if (data.tipo_terapeuta_nombre === "Redpsicofem") {
+        return '#453376'; // Morado para Redpsicofem
+      }
+      if (data.tipo_terapeuta_nombre === "Red derivacion") {
+        return '#2D9B9B'; // Verde para Red derivación
+      }
+    }
+    return '#0d6efd'; // Azul por defecto
+  };
+
   // Función para formatear valores que pueden ser objetos JSON
   const formatValue = (key, value) => {
     if (value === null || value === undefined) {
@@ -150,20 +182,38 @@ function Dashboard() {
     return (
       <div className="mb-4">
         <div className="btn-group">
+          {/* MODIFICADO: Botón Todos con color gris */}
           <button
-            className={`btn ${tipoTerapeuta === "todos" ? "btn-primary" : "btn-outline-primary"}`}
+            className="btn"
+            style={{
+              backgroundColor: tipoTerapeuta === "todos" ? "#6C757D" : "transparent",
+              color: tipoTerapeuta === "todos" ? "white" : "#6C757D",
+              borderColor: "#6C757D"
+            }}
             onClick={() => setTipoTerapeuta("todos")}
           >
             Todos
           </button>
+          {/* MODIFICADO: Botón Redpsicofem con color morado */}
           <button
-            className={`btn ${tipoTerapeuta === "Redpsicofem" ? "btn-primary" : "btn-outline-primary"}`}
+            className="btn"
+            style={{
+              backgroundColor: tipoTerapeuta === "Redpsicofem" ? "#453376" : "transparent",
+              color: tipoTerapeuta === "Redpsicofem" ? "white" : "#453376",
+              borderColor: "#453376"
+            }}
             onClick={() => setTipoTerapeuta("Redpsicofem")}
           >
             Redpsicofem
           </button>
+          {/* MODIFICADO: Botón Red derivación con color verde */}
           <button
-            className={`btn ${tipoTerapeuta === "Red derivacion" ? "btn-primary" : "btn-outline-primary"}`}
+            className="btn"
+            style={{
+              backgroundColor: tipoTerapeuta === "Red derivacion" ? "#2D9B9B" : "transparent",
+              color: tipoTerapeuta === "Red derivacion" ? "white" : "#2D9B9B",
+              borderColor: "#2D9B9B"
+            }}
             onClick={() => setTipoTerapeuta("Red derivacion")}
           >
             Red de Derivación
@@ -182,6 +232,9 @@ function Dashboard() {
       <div className="row g-4">
         {dataList.map((data, index) => {
           const isExpanded = expandedCard === index;
+          // NUEVO: Obtener colores dinámicos
+          const colorHeader = determinarColorHeader(data);
+          const colorBotonVerMas = determinarColorBotonVerMas(data);
 
           return (
             <div
@@ -195,7 +248,11 @@ function Dashboard() {
               }}
             >
               <div className="card h-100 shadow-sm">
-                <div className="card-header bg-primary text-white">
+                {/* MODIFICADO: Header con color dinámico */}
+                <div 
+                  className="card-header text-white" 
+                  style={{ backgroundColor: colorHeader }}
+                >
                   <h5 className="card-title mb-0">
                     {data.nombre} {data.apellido}
                   </h5>
@@ -260,22 +317,27 @@ function Dashboard() {
 
                 <div className="card-footer bg-white border-top-0">
                   <div className="d-flex gap-2">
+                    {/* MODIFICADO: Botón "Ver más" con color dinámico */}
                     <button
                       onClick={() =>
                         setExpandedCard(expandedCard === index ? null : index)
                       }
-                      className="btn btn-primary flex-grow-1"
+                      className="btn flex-grow-1 text-white"
+                      style={{ backgroundColor: colorBotonVerMas }}
                     >
                       {isExpanded ? "Ver menos" : "Ver más"}
                     </button>
                     
+                    {/* MODIFICADO: Botón "Perfil" con color azul y texto */}
                     {activeTab === "terapeutas" && (
                       <Link 
                         to={`/terapeuta/${data.id}`} 
-                        className="btn btn-outline-primary"
+                        className="btn text-white"
+                        style={{ backgroundColor: "#4A90E2" }}
                         title="Ver perfil completo"
                       >
-                        <i className="bi bi-person-badge"></i>
+                        <i className="bi bi-person-badge me-1"></i>
+                        Perfil
                       </Link>
                     )}
                   </div>
@@ -297,14 +359,19 @@ function Dashboard() {
             <i className="bi bi-plus-circle me-1"></i> Nuevo Terapeuta
           </Link>
           <div className="btn-group">
+            {/* MODIFICADO: Botón Pacientes con color naranja */}
             <button
-              className={`btn btn-lg ${
-                activeTab === "pacientes" ? "btn-primary" : "btn-outline-primary"
-              }`}
+              className="btn btn-lg"
+              style={{
+                backgroundColor: activeTab === "pacientes" ? "#FF8C42" : "transparent",
+                color: activeTab === "pacientes" ? "white" : "#FF8C42",
+                borderColor: "#FF8C42"
+              }}
               onClick={() => setActiveTab("pacientes")}
             >
               Pacientes
             </button>
+            {/* SIN MODIFICAR: Botón Terapeutas (pendiente) */}
             <button
               className={`btn btn-lg ${
                 activeTab === "terapeutas" ? "btn-primary" : "btn-outline-primary"

@@ -32,6 +32,20 @@ const PerfilTerapeuta = () => {
   // Días de la semana para iteración
   const diasSemana = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'];
 
+  // NUEVO: Función para determinar color del header según tipo de terapeuta
+  const determinarColorHeader = () => {
+    if (!terapeuta) return '#0d6efd'; // Azul por defecto
+    
+    if (terapeuta.tipo_terapeuta_nombre === "Redpsicofem") {
+      return '#453376'; // Morado para Redpsicofem
+    }
+    if (terapeuta.tipo_terapeuta_nombre === "Red derivacion") {
+      return '#2D9B9B'; // Verde para Red derivación
+    }
+    
+    return '#0d6efd'; // Azul por defecto
+  };
+
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     const cargarTerapeuta = async () => {
@@ -220,7 +234,11 @@ const PerfilTerapeuta = () => {
       <div className="row">
         <div className="col-12 mb-4">
           <div className="card shadow-sm">
-            <div className="card-header bg-primary text-white">
+            {/* MODIFICADO: Header con color dinámico según tipo */}
+            <div 
+              className="card-header text-white" 
+              style={{ backgroundColor: determinarColorHeader() }}
+            >
               <div className="d-flex justify-content-between align-items-center">
                 <h3 className="mb-0">Perfil de Terapeuta</h3>
                 <button 
@@ -265,7 +283,11 @@ const PerfilTerapeuta = () => {
 
         <div className="col-12">
           <div className="card shadow-sm">
-            <div className="card-header bg-primary text-white">
+            {/* MODIFICADO: Header con color dinámico según tipo */}
+            <div 
+              className="card-header text-white" 
+              style={{ backgroundColor: determinarColorHeader() }}
+            >
               <h4 className="mb-0">Horarios Disponibles</h4>
             </div>
             <div className="card-body">
