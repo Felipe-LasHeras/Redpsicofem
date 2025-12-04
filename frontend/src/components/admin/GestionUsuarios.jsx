@@ -66,7 +66,7 @@ const GestionUsuarios = () => {
 
       const terapeutaId = selectedTerapeuta ? parseInt(selectedTerapeuta) : null;
 
-      const { user, error: approveError } = await authService.approveUser(
+      const { error: approveError } = await authService.approveUser(
         userId,
         selectedRole,
         terapeutaId

@@ -21,7 +21,7 @@ import { useAuth } from '../../hooks/useAuth';
  * </PrivateRoute>
  */
 const PrivateRoute = ({ children, requireAdmin = false, requireTerapeuta = false }) => {
-  const { user, profile, loading, isAdmin, isTerapeuta, isApproved, isPending } = useAuth();
+  const { user, loading, isAdmin, isTerapeuta, isApproved, isPending } = useAuth();
 
   // Mostrar loading mientras se carga la autenticación
   if (loading) {
