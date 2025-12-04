@@ -29,24 +29,41 @@ export const AuthProvider = ({ children }) => {
    */
   const loadUserProfile = async (currentUser) => {
     if (!currentUser) {
+      console.log('[AuthContext] No hay usuario, limpiando perfil');
       setProfile(null);
       return;
     }
 
+    console.log('[AuthContext] Cargando perfil para usuario:', currentUser.email);
+
     try {
       // Primero intentar obtener el perfil
+      console.log('[AuthContext] Intentando obtener perfil existente...');
       let { profile: userProfile, error } = await authService.getUserProfile(currentUser.id);
+
+      if (error) {
+        console.error('[AuthContext] Error al obtener perfil:', error);
+      }
 
       // Si no existe, crear uno nuevo
       if (error || !userProfile) {
-        console.log('Creando perfil para usuario nuevo...');
+        console.log('[AuthContext] Perfil no existe, creando uno nuevo...');
         const result = await authService.createUserProfileIfNotExists(currentUser);
+
+        if (result.error) {
+          console.error('[AuthContext] Error al crear perfil:', result.error);
+        }
+
         userProfile = result.profile;
+        console.log('[AuthContext] Perfil creado:', userProfile);
+      } else {
+        console.log('[AuthContext] Perfil encontrado:', userProfile);
       }
 
       setProfile(userProfile);
+      console.log('[AuthContext] Perfil establecido en estado');
     } catch (error) {
-      console.error('Error al cargar perfil:', error);
+      console.error('[AuthContext] Error al cargar perfil:', error);
       setProfile(null);
     }
   };
