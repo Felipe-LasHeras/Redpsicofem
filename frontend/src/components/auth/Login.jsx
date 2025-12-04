@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 /**
@@ -8,7 +7,6 @@ import { useAuth } from '../../hooks/useAuth';
 const Login = () => {
   const { signIn, loading } = useAuth();
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   const handleGoogleLogin = async () => {
     try {
