@@ -164,6 +164,7 @@ export const authService = {
         display_name: user.user_metadata?.full_name || user.email,
         status: isAdmin ? 'approved' : 'pending',
         role: isAdmin ? 'admin' : null,
+        profile_completed: isAdmin, // Admin no necesita completar formulario adicional
       };
 
       return await authService.upsertUserProfile(user.id, profileData);

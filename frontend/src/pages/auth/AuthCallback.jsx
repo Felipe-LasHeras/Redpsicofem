@@ -35,6 +35,13 @@ const AuthCallback = () => {
         console.log('Usuario autenticado:', user.email);
         console.log('Perfil:', profile);
 
+        // NUEVO: Verificar si el usuario completó su perfil
+        if (!profile.profile_completed) {
+          console.log('Usuario no ha completado su perfil, redirigiendo a complete-profile...');
+          navigate('/auth/complete-profile', { replace: true });
+          return;
+        }
+
         // Decidir a dónde redirigir según el estado del usuario
         if (isPending) {
           console.log('Usuario pendiente de aprobación');

@@ -5,6 +5,7 @@ import PrivateRoute from './components/auth/PrivateRoute';
 import Login from './components/auth/Login';
 import AuthCallback from './pages/auth/AuthCallback';
 import PendingApproval from './pages/auth/PendingApproval';
+import CompleteProfile from './pages/auth/CompleteProfile';
 import Formulario from './components/forms/ConstructorFormulario';
 import Dashboard from './pages/admin/Dashboard';
 import Terapeutas from './components/profile/Terapeutas';
@@ -24,6 +25,7 @@ function App() {
             {/* Rutas públicas */}
             <Route path="/login" element={<Login />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/auth/complete-profile" element={<CompleteProfile />} />
             <Route path="/pending-approval" element={<PendingApproval />} />
 
             {/* Ruta para la página principal - pública */}
